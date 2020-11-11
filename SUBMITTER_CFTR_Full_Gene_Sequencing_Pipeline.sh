@@ -249,7 +249,7 @@
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/COUNT_COVARIATES/{GATK_REPORT,PDF} \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/GC_BIAS/{METRICS,PDF,SUMMARY} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE \
+		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/{TARGET,CFTR} \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/INSERT_SIZE/{METRICS,PDF} \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
@@ -678,35 +678,33 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	##############################################################################
-# 	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
-# 	# uses a gatk 3.7 container ##################################################
-# 	# input is the BAM file #################################################################################
-# 	# Generally this with all RefSeq Select CDS exons + missing OMIM unless it becomes targeted, e.g a zoom #
-# 	# uses the BAM file as the input ########################################################################
-# 	#########################################################################################################
+	##############################################################################
+	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
+	# uses a gatk 3.7 container ##################################################
+	# input is the BAM file #################################################################################
+	# Generally this with all RefSeq Select CDS exons + missing OMIM unless it becomes targeted, e.g a zoom #
+	# uses the BAM file as the input ########################################################################
+	#########################################################################################################
 
-# 		DOC_TARGET ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.03-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-DOC_TARGET.log" \
-# 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.03_DOC_TARGET_PADDED_BED.sh \
-# 				$GATK_3_7_0_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$TARGET_BED \
-# 				$PADDING_LENGTH \
-# 				$GENE_LIST \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		DOC_TARGET ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.03-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_TARGET.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.03_DOC_TARGET_BED.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$TARGET_BED \
+				$GENE_LIST \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	#################################################################################################
 # 	# CREATE VCF FOR VERIFYBAMID METRICS ############################################################
@@ -933,8 +931,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		COLLECT_HS_METRICS
 		echo sleep 0.1s
-		# DOC_TARGET
-		# echo sleep 0.1s
+		DOC_TARGET
+		echo sleep 0.1s
 # 		SELECT_VERIFYBAMID_VCF
 # 		echo sleep 0.1s
 # 		RUN_VERIFYBAMID
