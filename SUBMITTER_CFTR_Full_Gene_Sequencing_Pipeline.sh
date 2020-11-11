@@ -577,28 +577,27 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	# ##########################################################################################
-# 	# # index the cram file and copy it so that there are both *crai and cram.crai *extensions #
-# 	# ##########################################################################################
+	##########################################################################################
+	# index the cram file and copy it so that there are both *crai and cram.crai *extensions #
+	##########################################################################################
 
-# 		INDEX_CRAM ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-INDEX_CRAM.log" \
-# 			-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/G.01_INDEX_CRAM.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		INDEX_CRAM ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CRAM.log" \
+			-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/G.01_INDEX_CRAM.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -615,43 +614,42 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		BAM_TO_CRAM
 		echo sleep 0.1s
-# 		INDEX_CRAM
-# 		echo sleep 0.1s
+		INDEX_CRAM
+		echo sleep 0.1s
 done
 
-# ########################################################################################
-# ##### BAM/CRAM FILE RELATED METRICS ####################################################
-# ##### NOTE: SOME PROGRAMS CAN ONLY BE RAN ON THE BAM FILE AND NOT ON THE CRAM FILE #####
-# ##### I WILL COMMENT ON WHICH IS WHICH #################################################
-# ########################################################################################
+########################################################################################
+##### BAM/CRAM FILE RELATED METRICS ####################################################
+##### NOTE: SOME PROGRAMS CAN ONLY BE RAN ON THE BAM FILE AND NOT ON THE CRAM FILE #####
+##### I WILL COMMENT ON WHICH IS WHICH #################################################
+########################################################################################
 
-# 	################################################################################
-# 	# COLLECT MULTIPLE METRICS  ####################################################
-# 	# again used bait bed file here instead of target b/c target could be anything #
-# 	# ti/tv bed is unrelated to the capture really #################################
-# 	# uses the CRAM file as the input ##############################################
-# 	################################################################################
+	################################################################################
+	# COLLECT MULTIPLE METRICS  ####################################################
+	# again used bait bed file here instead of target b/c target could be anything #
+	# ti/tv bed is unrelated to the capture really #################################
+	# uses the CRAM file as the input ##############################################
+	################################################################################
 
-# 		COLLECT_MULTIPLE_METRICS ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
-# 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.01_COLLECT_MULTIPLE_METRICS.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$DBSNP \
-# 				$BAIT_BED \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		COLLECT_MULTIPLE_METRICS ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.01_COLLECT_MULTIPLE_METRICS.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$DBSNP \
+				$BAIT_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	#########################################
 # 	# COLLECT HS METRICS  ###################
@@ -925,15 +923,15 @@ done
 # 				$PADDING_LENGTH
 # 		}
 
-# for SAMPLE in $(awk 1 $SAMPLE_SHEET \
-# 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-# 			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
-# 			| sort \
-# 			| uniq );
-# 	do
-# 		CREATE_SAMPLE_ARRAY
-# 		COLLECT_MULTIPLE_METRICS
-# 		echo sleep 0.1s
+for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
+			| sort \
+			| uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+		COLLECT_MULTIPLE_METRICS
+		echo sleep 0.1s
 # 		COLLECT_HS_METRICS
 # 		echo sleep 0.1s
 # 		DOC_TARGET
@@ -956,7 +954,7 @@ done
 # 		echo sleep 0.1s
 # 		FILTER_ANNOTATED_PER_INTERVAL_REPORT
 # 		echo sleep 0.1s
-# done
+done
 
 # #####################################################################
 # # HAPLOTYPE CALLER SCATTER ##########################################
