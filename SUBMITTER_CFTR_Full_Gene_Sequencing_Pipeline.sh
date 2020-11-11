@@ -531,30 +531,29 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	##############################
-# 	# use a 4 bin q score scheme #
-# 	# remove indel Q scores ######
-# 	# retain original Q score  ###
-# 	##############################
+	##############################
+	# use a 4 bin q score scheme #
+	# remove indel Q scores ######
+	# retain original Q score  ###
+	##############################
 
-# 		APPLY_BQSR ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-APPLY_BQSR.log" \
-# 			-hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/E.01_APPLY_BQSR.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		APPLY_BQSR ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-APPLY_BQSR.log" \
+			-hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/E.01_APPLY_BQSR.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	#####################################################
 # 	# create a lossless cram, although the bam is lossy #
@@ -613,8 +612,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		PERFORM_BQSR
 		echo sleep 0.1s
-# 		APPLY_BQSR
-# 		echo sleep 0.1s
+		APPLY_BQSR
+		echo sleep 0.1s
 # 		BAM_TO_CRAM
 # 		echo sleep 0.1s
 # 		INDEX_CRAM
