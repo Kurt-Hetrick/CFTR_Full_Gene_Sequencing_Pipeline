@@ -733,28 +733,27 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	###############################
-# 	# RUN VERIFYBAMID #############
-# 	# THIS RUNS OFF OF A BAM FILE #
-# 	###############################
+	###############################
+	# RUN VERIFYBAMID #############
+	# THIS RUNS OFF OF A BAM FILE #
+	###############################
 
-# 		RUN_VERIFYBAMID ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.04-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-VERIFYBAMID.log" \
-# 			-hold_jid H.04-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.04-A.01_VERIFYBAMID.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		RUN_VERIFYBAMID ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.04-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
+			-hold_jid H.04-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.04-A.01_VERIFYBAMID.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	##############################################################################
 # 	# CREATE DEPTH OF COVERAGE FOR CODING BED PADDED WITH THE INPUT FROM THE GUI #
@@ -935,8 +934,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		SELECT_VERIFYBAMID_VCF
 		echo sleep 0.1s
-# 		RUN_VERIFYBAMID
-# 		echo sleep 0.1s
+		RUN_VERIFYBAMID
+		echo sleep 0.1s
 # 		DOC_CODING
 # 		echo sleep 0.1s
 # 		ANNOTATE_PER_BASE_REPORT
