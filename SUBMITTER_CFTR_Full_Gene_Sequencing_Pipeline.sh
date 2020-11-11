@@ -555,28 +555,27 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	#####################################################
-# 	# create a lossless cram, although the bam is lossy #
-# 	#####################################################
+	#####################################################
+	# create a lossless cram, although the bam is lossy #
+	#####################################################
 
-# 		BAM_TO_CRAM ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-BAM_TO_CRAM.log" \
-# 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/F.01_BAM_TO_CRAM.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		BAM_TO_CRAM ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BAM_TO_CRAM.log" \
+			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/F.01_BAM_TO_CRAM.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	# ##########################################################################################
 # 	# # index the cram file and copy it so that there are both *crai and cram.crai *extensions #
@@ -614,8 +613,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		APPLY_BQSR
 		echo sleep 0.1s
-# 		BAM_TO_CRAM
-# 		echo sleep 0.1s
+		BAM_TO_CRAM
+		echo sleep 0.1s
 # 		INDEX_CRAM
 # 		echo sleep 0.1s
 done
