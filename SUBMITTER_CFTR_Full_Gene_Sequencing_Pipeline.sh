@@ -254,7 +254,7 @@
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/INSERT_SIZE/{METRICS,PDF} \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
 		$CORE_PATH/$PROJECT/TEMP/$SM_TAG_ANNOVAR \
-		$CORE_PATH/$PROJECT/{TEMP,FASTQ,COMMAND_LINES}
+		$CORE_PATH/$PROJECT/{TEMP,FASTQ,COMMAND_LINES,REPORTS}
 	}
 
 	SETUP_PROJECT ()
@@ -505,32 +505,31 @@ done
 				$GVCF_PAD
 		}
 
-# 	#######################################
-# 	# run bqsr on the using bait bed file #
-# 	#######################################
+	#######################################
+	# run bqsr on the using bait bed file #
+	#######################################
 
-# 		PERFORM_BQSR ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-PERFORM_BQSR.log" \
-# 			-hold_jid B.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$KNOWN_INDEL_1 \
-# 				$KNOWN_INDEL_2 \
-# 				$DBSNP \
-# 				$BAIT_BED \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		PERFORM_BQSR ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
+			-hold_jid B.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$KNOWN_INDEL_1 \
+				$KNOWN_INDEL_2 \
+				$DBSNP \
+				$BAIT_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	##############################
 # 	# use a 4 bin q score scheme #
@@ -612,8 +611,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		CREATE_SAMPLE_ARRAY
 		FIX_BED_FILES
 		echo sleep 0.1s
-# 		PERFORM_BQSR
-# 		echo sleep 0.1s
+		PERFORM_BQSR
+		echo sleep 0.1s
 # 		APPLY_BQSR
 # 		echo sleep 0.1s
 # 		BAM_TO_CRAM

@@ -181,7 +181,7 @@
 # write wall clock times to file
 
 	echo $SM_TAG"_"$PROJECT",A.01,BWA_MEM,"$HOSTNAME","$START_BWA_MEM","$END_BWA_MEM \
-	>> $CORE_PATH/$PROJECT/$PROJECT".WALL.CLOCK.TIMES.csv"
+	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program
 

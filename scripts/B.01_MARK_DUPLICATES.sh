@@ -102,7 +102,7 @@ END_MARK_DUPLICATES=`date '+%s'` # capture time process stops for wall clock tra
 # write wall clock times to file
 
 	echo $SM_TAG"_"$PROJECT",C.01,MARK_DUPLICATES,"$HOSTNAME","$START_MARK_DUPLICATES","$END_MARK_DUPLICATES \
-	>> $CORE_PATH/$PROJECT/$PROJECT".WALL.CLOCK.TIMES.csv"
+	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program
 
