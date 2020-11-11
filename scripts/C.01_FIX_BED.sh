@@ -208,5 +208,5 @@
 
 		(grep "^@SQ" $REF_DIR/$REF_BASENAME".dict" \
 			; awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
-				$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TITV_BED_NAME".bed") \
-		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TITV_BED_NAME"-picard.bed"
+				$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME".bed") \
+		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME"-picard.bed"

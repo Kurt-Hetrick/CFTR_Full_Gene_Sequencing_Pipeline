@@ -651,33 +651,32 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	#########################################
-# 	# COLLECT HS METRICS  ###################
-# 	# bait bed is the bait bed file #########
-# 	# titv bed files is the target bed file #
-# 	# uses the CRAM file as the input #######
-# 	#########################################
+	###########################################
+	# COLLECT HS METRICS  #####################
+	# bait bed is the bait bed file ###########
+	# target bed files is the target bed file #
+	# uses the CRAM file as the input #########
+	###########################################
 
-# 		COLLECT_HS_METRICS ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-COLLECT_HS_METRICS.log" \
-# 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.02_COLLECT_HS_METRICS.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$BAIT_BED \
-# 				$TITV_BED \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		COLLECT_HS_METRICS ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_HS_METRICS.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.02_COLLECT_HS_METRICS.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$BAIT_BED \
+				$TARGET_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	##############################################################################
 # 	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
@@ -932,10 +931,10 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		CREATE_SAMPLE_ARRAY
 		COLLECT_MULTIPLE_METRICS
 		echo sleep 0.1s
-# 		COLLECT_HS_METRICS
-# 		echo sleep 0.1s
-# 		DOC_TARGET
-# 		echo sleep 0.1s
+		COLLECT_HS_METRICS
+		echo sleep 0.1s
+		# DOC_TARGET
+		# echo sleep 0.1s
 # 		SELECT_VERIFYBAMID_VCF
 # 		echo sleep 0.1s
 # 		RUN_VERIFYBAMID
