@@ -756,27 +756,26 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	########################################################################################
-# 	# FORMATTING PER BASE COVERAGE AND ADDING GENE NAME, TRANSCRIPT, EXON, ETC ANNNOTATION #
-# 	########################################################################################
+	#################################################################################################
+	# FORMATTING PER BASE COVERAGE FOR CFTR AND ADDING GENE NAME, TRANSCRIPT, EXON, ETC ANNNOTATION #
+	#################################################################################################
 
-# 		ANNOTATE_PER_BASE_REPORT ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.05-A.02_ANNOTATE_PER_BASE"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-ANNOTATE_PER_BASE.log" \
-# 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,H.05-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.05-A.02_ANNOTATE_PER_BASE.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$CODING_BED \
-# 				$PADDING_LENGTH
-# 		}
+		ANNOTATE_PER_BASE_REPORT_CFTR ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.04-A.01_ANNOTATE_PER_BASE"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_BASE_CFTR.log" \
+			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,H.04-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.04-A.01_ANNOTATE_PER_BASE_CFTR.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$TARGET_BED \
+				$CFTR_BED
+		}
 
 # 	##########################################################################
 # 	# FILTER PER BASE COVERAGE WITH GENE NAME ANNNOTATION WITH LESS THAN 30x #
@@ -907,8 +906,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		DOC_TARGET
 		echo sleep 0.1s
-# 		ANNOTATE_PER_BASE_REPORT
-# 		echo sleep 0.1s
+		ANNOTATE_PER_BASE_REPORT_CFTR
+		echo sleep 0.1s
 # 		FILTER_ANNOTATED_PER_BASE_REPORT
 # 		echo sleep 0.1s
 # 		BGZIP_ANNOTATED_PER_BASE_REPORT
