@@ -54,7 +54,6 @@ START_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock track
 			CMD=$CMD" -mmq 20" \
 			CMD=$CMD" -mbq 10" \
 			CMD=$CMD" --outputFormat csv" \
-			CMD=$CMD" -omitBaseOutput" \
 			CMD=$CMD" -o $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"$TARGET_BED_NAME" \
 			CMD=$CMD" -ct 10" \
 			CMD=$CMD" -ct 15" \
@@ -90,6 +89,15 @@ END_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock trackin
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 ##### MOVE AND RENAME OUTPUTS
+
+	# FIX DELIMETER IN THE HEADER AND ONLY KEEP THE FIRST 2 COLUMNS for the every base report.
+	# this report is fed into the annotate per base reports (filtered and unfiltered)
+	# DELETE SOURCE FILE
+
+		sed 's/\t/,/g' $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"$TARGET_BED_NAME \
+		| cut -d "," -f 1,2 \
+		>| $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"$TARGET_BED_NAME".EveryBase.csv" && \
+		rm -rvf $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"$TARGET_BED_NAME
 
 	# COUNT OF BASES AT "X" LEVEL OF COVERAGE
 

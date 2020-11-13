@@ -155,6 +155,7 @@
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 	CONTROL_PED_FILE="$CONTROL_REPO/TWIST_CONTROL_SET1.200601.ped"
+	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -678,34 +679,6 @@ done
 				$SUBMIT_STAMP
 		}
 
-	##############################################################################
-	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
-	# uses a gatk 3.7 container ##################################################
-	# input is the BAM file #################################################################################
-	# Generally this with all RefSeq Select CDS exons + missing OMIM unless it becomes targeted, e.g a zoom #
-	# uses the BAM file as the input ########################################################################
-	#########################################################################################################
-
-		DOC_TARGET ()
-		{
-			echo \
-			qsub \
-				$QSUB_ARGS \
-			-N H.03-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_TARGET.log" \
-			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.03_DOC_TARGET_BED.sh \
-				$GATK_3_7_0_CONTAINER \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$REF_GENOME \
-				$TARGET_BED \
-				$GENE_LIST \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
-
 	#################################################################################################
 	# CREATE VCF FOR VERIFYBAMID METRICS ############################################################
 	# USE THE BAIT BED FILE #########################################################################
@@ -718,10 +691,10 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
-			-N H.04-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			-N H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.04_SELECT_VERIFYBAMID_VCF.sh \
+			$SCRIPT_DIR/H.03_SELECT_VERIFYBAMID_VCF.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
@@ -743,10 +716,10 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
-			-N H.04-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+			-N H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
-			-hold_jid H.04-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.04-A.01_VERIFYBAMID.sh \
+			-hold_jid H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.03-A.01_VERIFYBAMID.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
@@ -755,35 +728,33 @@ done
 				$SUBMIT_STAMP
 		}
 
-# 	##############################################################################
-# 	# CREATE DEPTH OF COVERAGE FOR CODING BED PADDED WITH THE INPUT FROM THE GUI #
-# 	# uses a gatk 3.7 container ##################################################
-# 	# input is the BAM file ######################################################
-# 	# This with all RefSeq Select CDS exons + missing OMIM, etc. #################
-# 	# uses the BAM file as the input #############################################
-# 	##############################################################################
+	##############################################################################
+	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
+	# uses a gatk 3.7 container ##################################################
+	# input is the BAM file #################################################################################
+	# Generally this with all RefSeq Select CDS exons + missing OMIM unless it becomes targeted, e.g a zoom #
+	# uses the BAM file as the input ########################################################################
+	#########################################################################################################
 
-# 		DOC_CODING ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.05-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-DOC_CODING.log" \
-# 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.05_DOC_CODING_PADDED.sh \
-# 				$GATK_3_7_0_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$REF_GENOME \
-# 				$CODING_BED \
-# 				$PADDING_LENGTH \
-# 				$GENE_LIST \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		DOC_TARGET ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.04-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_TARGET.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.04_DOC_TARGET_BED.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$TARGET_BED \
+				$GENE_LIST \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	########################################################################################
 # 	# FORMATTING PER BASE COVERAGE AND ADDING GENE NAME, TRANSCRIPT, EXON, ETC ANNNOTATION #
@@ -930,14 +901,12 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		COLLECT_HS_METRICS
 		echo sleep 0.1s
-		DOC_TARGET
-		echo sleep 0.1s
 		SELECT_VERIFYBAMID_VCF
 		echo sleep 0.1s
 		RUN_VERIFYBAMID
 		echo sleep 0.1s
-# 		DOC_CODING
-# 		echo sleep 0.1s
+		DOC_TARGET
+		echo sleep 0.1s
 # 		ANNOTATE_PER_BASE_REPORT
 # 		echo sleep 0.1s
 # 		FILTER_ANNOTATED_PER_BASE_REPORT
