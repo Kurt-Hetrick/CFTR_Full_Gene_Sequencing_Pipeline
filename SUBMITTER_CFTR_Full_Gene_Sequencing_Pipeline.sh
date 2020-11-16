@@ -795,29 +795,26 @@ done
 				$SM_TAG
 		}
 
-# 	######################################################
-# 	# BGZIP PER BASE COVERAGE WITH GENE NAME ANNNOTATION #
-# 	######################################################
+	######################################################
+	# BGZIP PER BASE COVERAGE WITH GENE NAME ANNNOTATION #
+	######################################################
 
-# 		BGZIP_ANNOTATED_PER_BASE_REPORT ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.05-A.02-A.02_BGZIP_ANNOTATED_PER_BASE"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-BGZIP_ANNOTATED_PER_BASE.log" \
-# 			-hold_jid H.05-A.02_ANNOTATE_PER_BASE"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.05-A.02-A.02_BGZIP_ANNOTATED_PER_BASE.sh \
-# 				$ALIGNMENT_CONTAINER \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$CODING_BED \
-# 				$PADDING_LENGTH \
-# 				$SAMPLE_SHEET \
-# 				$SUBMIT_STAMP
-# 		}
+		BGZIP_ANNOTATED_PER_BASE_REPORT ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.04-A.01-A.02_BGZIP_ANNOTATED_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BGZIP_ANNOTATED_PER_BASE_CFTR.log" \
+			-hold_jid H.04-A.01_ANNOTATE_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.04-A.01-A.02_BGZIP_ANNOTATED_PER_BASE_CFTR.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
 
 # 	######################################################
 # 	# TABIX PER BASE COVERAGE WITH GENE NAME ANNNOTATION #
@@ -907,8 +904,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		FILTER_ANNOTATED_PER_BASE_REPORT_CFTR
 		echo sleep 0.1s
-# 		BGZIP_ANNOTATED_PER_BASE_REPORT
-# 		echo sleep 0.1s
+		BGZIP_ANNOTATED_PER_BASE_REPORT
+		echo sleep 0.1s
 # 		TABIX_ANNOTATED_PER_BASE_REPORT
 # 		echo sleep 0.1s
 # 		ANNOTATE_PER_INTERVAL_REPORT
