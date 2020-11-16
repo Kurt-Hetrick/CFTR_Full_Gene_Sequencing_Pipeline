@@ -33,8 +33,6 @@
 	TARGET_BED=$5
 		TARGET_BED_NAME=$(basename $TARGET_BED .bed)
 	CFTR_BED=$6
-		CFTR_BED_NAME=$(basename $CODING_BED .bed)
-		CFTR_MD5=$(md5sum $CODING_BED | cut -c 1-7)
 
 START_PER_BASE=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
@@ -53,14 +51,14 @@ START_PER_BASE=`date '+%s'` # capture time process starts for wall clock trackin
 			{print $1,$3,$4,$5,$6,$7,$11}' \
 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt
 
-# SORT THE FILE IN KARYOTYPIC ORDER
+# SORT THE FILE IN KARYOTYPIC ORDER.
 
 	(head -n 1 $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt ; \
 	awk '$1~/^[0-9]/' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt | sort -k1,1n -k 2,2n ; \
 	awk '$1=="X"' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt | sort -k1,1n -k 2,2n ; \
 	awk '$1=="Y"' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt | sort -k1,1n -k 2,2n ; \
 	awk '$1=="MT"' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt | sort -k1,1n -k 2,2n) \
-	>| $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt
+	>| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt
 
 END_PER_BASE=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
