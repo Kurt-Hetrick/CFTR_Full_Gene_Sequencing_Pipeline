@@ -26,33 +26,42 @@
 
 	GATK_3_7_0_CONTAINER=$1
 	CORE_PATH=$2
-
 	PROJECT=$3
 	SM_TAG=$4
 	REF_GENOME=$5
-	DBSNP=$6
+	PHASE3_1KG_AUTOSOMES=$6
 	SAMPLE_SHEET=$7
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$8
 
-START_GENOTYPE_GVCF=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
 		CMD="singularity exec $GATK_3_7_0_CONTAINER java -jar" \
 			CMD=$CMD" /usr/GenomeAnalysisTK.jar" \
-		CMD=$CMD" -T GenotypeGVCFs" \
+		CMD=$CMD" -T VariantAnnotator" \
 			CMD=$CMD" -R $REF_GENOME" \
-			CMD=$CMD" --variant $CORE_PATH/$PROJECT/$SM_TAG/GVCF/$SM_TAG".g.vcf.gz"" \
-			CMD=$CMD" -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG.RAW.vcf.gz" \
+			CMD=$CMD" --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG.RAW.vcf.gz" \
+			CMD=$CMD" -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG.RAW.ANNOTATED.vcf.gz" \
+			CMD=$CMD" -L $CORE_PATH/$PROJECT/TEMP/$SM_TAG.RAW.vcf.gz" \
 			CMD=$CMD" --disable_auto_index_creation_and_locking_when_reading_rods" \
-			CMD=$CMD" --logging_level ERROR" \
-			CMD=$CMD" --dbsnp $DBSNP" \
-			CMD=$CMD" --includeNonVariantSites" \
-			CMD=$CMD" --annotateNDA" \
-			CMD=$CMD" --annotation FractionInformativeReads" \
-			CMD=$CMD" --annotation StrandBiasBySample" \
-			CMD=$CMD" --annotation StrandAlleleCountsBySample"
+			CMD=$CMD" --annotation AlleleBalance" \
+			CMD=$CMD" --annotation AlleleBalanceBySample" \
+			CMD=$CMD" --annotation AlleleCountBySample" \
+			CMD=$CMD" --annotation GCContent" \
+			CMD=$CMD" --annotation GenotypeSummaries" \
+			CMD=$CMD" --annotation HomopolymerRun" \
+			CMD=$CMD" --annotation TandemRepeatAnnotator" \
+			CMD=$CMD" --annotation VariantType" \
+			CMD=$CMD" --resource:OneKGP $PHASE3_1KG_AUTOSOMES" \
+			CMD=$CMD" --resourceAlleleConcordance" \
+			CMD=$CMD" --expression OneKGP.AF" \
+			CMD=$CMD" --expression OneKGP.EAS_AF" \
+			CMD=$CMD" --expression OneKGP.AMR_AF" \
+			CMD=$CMD" --expression OneKGP.AFR_AF" \
+			CMD=$CMD" --expression OneKGP.EUR_AF" \
+			CMD=$CMD" --expression OneKGP.SAS_AF"
 
 	# write command line to file and execute the command line
 
@@ -74,11 +83,11 @@ START_GENOTYPE_GVCF=`date '+%s'` # capture time process starts for wall clock tr
 			exit $SCRIPT_STATUS
 		fi
 
-END_GENOTYPE_GVCF=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+END_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process ends for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $PROJECT",I.001,GENOTYPE_GVCF,"$HOSTNAME","$START_GENOTYPE_GVCF","$END_GENOTYPE_GVCF \
+	echo $PROJECT",M.001,ADD_MORE_ANNOTATION,"$HOSTNAME","$START_ADD_MORE_ANNOTATION","$END_ADD_MORE_ANNOTATION \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

@@ -951,6 +951,33 @@ done
 				$SUBMIT_STAMP
 		}
 
+	################################################################
+	# Run VariantAnnotator on each sample to add extra annotations #
+	################################################################
+
+		ANNOTATE_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N J.01_ANNOTATE_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_VCF.log" \
+			-hold_jid I.01_GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/J.01_VARIANT_ANNOTATOR.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$PHASE3_1KG_AUTOSOMES \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+########################################
+# Run a bunch of steps for each sample #
+########################################
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -985,5 +1012,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		INDEX_HC_CRAM
 		echo sleep 0.1s
 		GENOTYPE_GVCF
+		echo sleep 0.1s
+		ANNOTATE_VCF
 		echo sleep 0.1s
 done
