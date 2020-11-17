@@ -161,103 +161,102 @@
 ##### MAKE A DIRECTORY TREE #####
 #################################
 
-##### CREATING A DIRECTORY IN USER'S HOME TO MERGE THE SAMPLE MANIFEST WITH THE PED FILE
+	# CREATE AN ARRAY FOR EACH SAMPLE IN SAMPLE SHEET FOR INPUT THAT WILL BE USED IN THE PIPELINE
+	# NAME ARRAY ELEMENTS AS VARIABLES.
 
-	MANIFEST_PREFIX=`basename $SAMPLE_SHEET .csv`
+		CREATE_SAMPLE_ARRAY ()
+		{
+			SAMPLE_ARRAY=(`awk 1 $SAMPLE_SHEET \
+				| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+				| awk 'BEGIN {FS=","; OFS="\t"} $8=="'$SAMPLE'" \
+				{split($19,INDEL,";"); \
+				print $1,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
+					| sort \
+					| uniq`)
 
-	CREATE_SAMPLE_ARRAY ()
-	{
-		SAMPLE_ARRAY=(`awk 1 $SAMPLE_SHEET \
-			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-			| awk 'BEGIN {FS=","; OFS="\t"} $8=="'$SAMPLE'" \
-			{split($19,INDEL,";"); \
-			print $1,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
-				| sort \
-				| uniq`)
+			#  1  Project=the Seq Proj folder name
 
-		#  1  Project=the Seq Proj folder name
+				PROJECT=${SAMPLE_ARRAY[0]}
 
-			PROJECT=${SAMPLE_ARRAY[0]}
+			################################################################################
+			# 2 SKIP : FCID=flowcell that sample read group was performed on ###############
+			# 3 SKIP : Lane=lane of flowcell that sample read group was performed on] ######
+			# 4 SKIP : Index=sample barcode ################################################
+			# 5 SKIP : Platform=type of sequencing chemistry matching SAM specification ####
+			# 6 SKIP : Library_Name=library group of the sample read group #################
+			# 7 SKIP : Date=should be the run set up date to match the seq run folder name #
+			################################################################################
 
-		################################################################################
-		# 2 SKIP : FCID=flowcell that sample read group was performed on ###############
-		# 3 SKIP : Lane=lane of flowcell that sample read group was performed on] ######
-		# 4 SKIP : Index=sample barcode ################################################
-		# 5 SKIP : Platform=type of sequencing chemistry matching SAM specification ####
-		# 6 SKIP : Library_Name=library group of the sample read group #################
-		# 7 SKIP : Date=should be the run set up date to match the seq run folder name #
-		################################################################################
+			#  8  SM_Tag=sample ID
 
-		#  8  SM_Tag=sample ID
+				SM_TAG=${SAMPLE_ARRAY[1]}
+					SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
 
-			SM_TAG=${SAMPLE_ARRAY[1]}
-				SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
+			#  9  Center=the center/funding mechanism
 
-		#  9  Center=the center/funding mechanism
+				CENTER=${SAMPLE_ARRAY[2]}
 
-			CENTER=${SAMPLE_ARRAY[2]}
+			# 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
+			# “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
 
-		# 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
-		# “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
+				SEQUENCER_MODEL=${SAMPLE_ARRAY[3]}
 
-			SEQUENCER_MODEL=${SAMPLE_ARRAY[3]}
+			#########################
+			# 11  SKIP : Seq_Exp_ID #
+			#########################
 
-		#########################
-		# 11  SKIP : Seq_Exp_ID #
-		#########################
+			# 12  Genome_Ref=the reference genome used in the analysis pipeline
 
-		# 12  Genome_Ref=the reference genome used in the analysis pipeline
+				REF_GENOME=${SAMPLE_ARRAY[4]}
 
-			REF_GENOME=${SAMPLE_ARRAY[4]}
+			#####################################
+			# 13  Operator: SKIP ################
+			# 14  Extra_VCF_Filter_Params: SKIP #
+			#####################################
 
-		#####################################
-		# 13  Operator: SKIP ################
-		# 14  Extra_VCF_Filter_Params: SKIP #
-		#####################################
+			# 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
 
-		# 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
+				TITV_BED=${SAMPLE_ARRAY[5]}
 
-			TITV_BED=${SAMPLE_ARRAY[5]}
+			# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
+			# Used for limited where to run base quality score recalibration on where to create gvcf files.
 
-		# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
-		# Used for limited where to run base quality score recalibration on where to create gvcf files.
+				BAIT_BED=${SAMPLE_ARRAY[6]}
 
-			BAIT_BED=${SAMPLE_ARRAY[6]}
+			# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
 
-		# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
+				TARGET_BED=${SAMPLE_ARRAY[7]}
 
-			TARGET_BED=${SAMPLE_ARRAY[7]}
+			# 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
 
-		# 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
+				DBSNP=${SAMPLE_ARRAY[8]}
 
-			DBSNP=${SAMPLE_ARRAY[8]}
+			# 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
 
-		# 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
+				KNOWN_INDEL_1=${SAMPLE_ARRAY[9]}
+				KNOWN_INDEL_2=${SAMPLE_ARRAY[10]}
+		}
 
-			KNOWN_INDEL_1=${SAMPLE_ARRAY[9]}
-			KNOWN_INDEL_2=${SAMPLE_ARRAY[10]}
-	}
+	# PROJECT DIRECTORY TREE CREATOR
 
-# PROJECT DIRECTORY TREE CREATOR
-
-	MAKE_PROJ_DIR_TREE ()
-	{
-		mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/COUNT_COVARIATES/{GATK_REPORT,PDF} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/GC_BIAS/{METRICS,PDF,SUMMARY} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/INSERT_SIZE/{METRICS,PDF} \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
-		$CORE_PATH/$PROJECT/TEMP/$SM_TAG_ANNOVAR \
-		$CORE_PATH/$PROJECT/{TEMP,FASTQ,COMMAND_LINES,REPORTS} \
-		$CORE_PATH/$PROJECT/LOGS/$SM_TAG
-	}
+		MAKE_PROJ_DIR_TREE ()
+		{
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/COUNT_COVARIATES/{GATK_REPORT,PDF} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/GC_BIAS/{METRICS,PDF,SUMMARY} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/INSERT_SIZE/{METRICS,PDF} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
+			$CORE_PATH/$PROJECT/TEMP/$SM_TAG_ANNOVAR \
+			$CORE_PATH/$PROJECT/{TEMP,FASTQ,COMMAND_LINES,REPORTS} \
+			$CORE_PATH/$PROJECT/LOGS/$SM_TAG
+		}
 
 	SETUP_PROJECT ()
 	{
@@ -929,6 +928,29 @@ done
 				$SUBMIT_STAMP
 		}
 
+	###################################
+	# Run GenotypeGVCF on each sample #
+	###################################
+
+		GENOTYPE_GVCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N I.01_GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF.log" \
+			-hold_jid H.05-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/I.01_GENOTYPE_GVCF.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$DBSNP \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -961,5 +983,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		HC_BAM_TO_CRAM
 		echo sleep 0.1s
 		INDEX_HC_CRAM
+		echo sleep 0.1s
+		GENOTYPE_GVCF
 		echo sleep 0.1s
 done
