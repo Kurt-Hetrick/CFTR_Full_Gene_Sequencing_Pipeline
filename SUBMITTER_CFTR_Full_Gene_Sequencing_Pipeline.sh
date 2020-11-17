@@ -799,7 +799,7 @@ done
 	# BGZIP PER BASE COVERAGE WITH GENE NAME ANNNOTATION #
 	######################################################
 
-		BGZIP_ANNOTATED_PER_BASE_REPORT ()
+		BGZIP_ANNOTATED_PER_BASE_REPORT_CFTR ()
 		{
 			echo \
 			qsub \
@@ -820,7 +820,7 @@ done
 	# TABIX PER BASE COVERAGE WITH GENE NAME ANNNOTATION #
 	######################################################
 
-		TABIX_ANNOTATED_PER_BASE_REPORT ()
+		TABIX_ANNOTATED_PER_BASE_REPORT_CFTR ()
 		{
 			echo \
 			qsub \
@@ -841,15 +841,15 @@ done
 	# FORMATTING PER CODING INTERVAL COVERAGE AND ADDING GENE NAME, TRANSCRIPT, EXON, ETC ANNNOTATION #
 	###################################################################################################
 
-		ANNOTATE_PER_CFTR_EXON ()
+		ANNOTATE_PER_CFTR_FEATURE ()
 		{
 			echo \
 			qsub \
 				$QSUB_ARGS \
-			-N H.04-A.02_ANNOTATE_PER_CFTR_EXON"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_CFTR_EXON.log" \
+			-N H.04-A.02_ANNOTATE_PER_CFTR_FEATURE"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_CFTR_FEATURE.log" \
 			-hold_jid H.04-DOC_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.04-A.02_ANNOTATE_PER_CFTR_EXON.sh \
+			$SCRIPT_DIR/H.04-A.02_ANNOTATE_PER_CFTR_FEATURE.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
@@ -974,6 +974,28 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#############################################################
+	# Extract SNVs and REF for each sample to add filters later #
+	#############################################################
+
+		EXTRACT_SNV_AND_REF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N K.01_EXTRACT_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_SNV_AND_REF.log" \
+			-hold_jid J.01_ANNOTATE_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/K.01_EXTRACT_SNV_AND_REF.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ########################################
 # Run a bunch of steps for each sample #
 ########################################
@@ -999,11 +1021,11 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		FILTER_ANNOTATED_PER_BASE_REPORT_CFTR
 		echo sleep 0.1s
-		BGZIP_ANNOTATED_PER_BASE_REPORT
+		BGZIP_ANNOTATED_PER_BASE_REPORT_CFTR
 		echo sleep 0.1s
-		TABIX_ANNOTATED_PER_BASE_REPORT
+		TABIX_ANNOTATED_PER_BASE_REPORT_CFTR
 		echo sleep 0.1s
-		ANNOTATE_PER_CFTR_EXON
+		ANNOTATE_PER_CFTR_FEATURE
 		echo sleep 0.1s
 		CALL_HAPLOTYPE_CALLER
 		echo sleep 0.1s
@@ -1014,5 +1036,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		GENOTYPE_GVCF
 		echo sleep 0.1s
 		ANNOTATE_VCF
+		echo sleep 0.1s
+		EXTRACT_SNV_AND_REF
 		echo sleep 0.1s
 done
