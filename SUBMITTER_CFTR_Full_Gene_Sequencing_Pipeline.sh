@@ -767,7 +767,7 @@ done
 				$QSUB_ARGS \
 			-N H.04-A.01_ANNOTATE_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_BASE_CFTR.log" \
-			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,H.04-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,H.04-DOC_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.04-A.01_ANNOTATE_PER_BASE_CFTR.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
@@ -857,27 +857,6 @@ done
 				$CFTR_BED
 		}
 
-# 	##################################################################################################
-# 	# FILTER ANNOTATED PER CODING INTERVAL COVERAGE TO INTERVALS WHERE LESS 100% OF BASES ARE AT 30X #
-# 	##################################################################################################
-
-# 		FILTER_ANNOTATED_PER_INTERVAL_REPORT ()
-# 		{
-# 			echo \
-# 			qsub \
-# 				$QSUB_ARGS \
-# 			-N H.05-A.03-A.01_FILTER_ANNOTATED_PER_INTERVAL"_"$SGE_SM_TAG"_"$PROJECT \
-# 				-o $CORE_PATH/$PROJECT/$SM_TAG/LOGS/$SM_TAG"-FILTER_ANNOTATED_PER_INTERVAL.log" \
-# 			-hold_jid H.05-A.03_ANNOTATE_PER_INTERVAL"_"$SGE_SM_TAG"_"$PROJECT \
-# 			$SCRIPT_DIR/H.05-A.03-A.01_FILTER_ANNOTATED_PER_INTERVAL.sh \
-# 				$CORE_PATH \
-# 				$PROJECT \
-# 				$FAMILY \
-# 				$SM_TAG \
-# 				$CODING_BED \
-# 				$PADDING_LENGTH
-# 		}
-
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -905,8 +884,6 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		ANNOTATE_PER_CFTR_EXON
 		echo sleep 0.1s
-# 		FILTER_ANNOTATED_PER_INTERVAL_REPORT
-# 		echo sleep 0.1s
 done
 
 # #####################################################################

@@ -41,7 +41,7 @@ START_PER_BASE=`date '+%s'` # capture time process starts for wall clock trackin
 
 	awk 'BEGIN {FS=","; OFS="\t"} NR>1 \
 		{split($1,BASE,":"); print BASE[1],BASE[2]-1,BASE[2],$2}' \
-	$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"$TARGET_BED_NAME".EveryBase.csv" \
+	$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.EveryBase.csv" \
 		| singularity exec $ALIGNMENT_CONTAINER bedtools \
 			intersect \
 			-a $CFTR_BED \
