@@ -159,16 +159,17 @@
 			| grep -v "^MT" \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME".bed"
 
-# THE GVCF BED FILE IS THE CONCATENATION OF THE CIDR TWIST BAIT BED FILE
-## AND THE CODING BED FILE WHICH IS REFSEQ SELECT CDS AND MISSING OMIM.
-# THIS IS PADDED WITH 250 BP AND THEN MERGED FOR OVERLAPPING REGIONS.
+# THE GVCF BED FILE the "target" bed file with the cftr target padded by 250 bp.
+# the rest of the targets (the barcode targets) are unpadded.
 
 	awk 1 $BAIT_BED \
 		| sed 's/\r//g' \
 		| sed -r 's/[[:space:]]+/\t/g' \
 		| sed 's/^chr//g' \
 		| grep -v "^MT" \
-		| awk 'BEGIN {OFS="\t"} {print $1,$2-"'$GVCF_PAD'",$3+"'$GVCF_PAD'"}' \
+		| awk 'BEGIN {OFS="\t"} {if ($1=="7"&&$2=="117109053"&&$3=="117314054") \
+			print $1,$2-"'$GVCF_PAD'",$3+"'$GVCF_PAD'" ; \
+			else print $0}' \
 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$BAIT_BED_NAME"-"$GVCF_PAD"-BP-PAD-GVCF.bed"
 
 # Format the cytoband file.
