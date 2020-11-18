@@ -1062,6 +1062,28 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#####################################################
+	# COMBINE FILTERED INDELS and MIXED VARIANATS for each sample #
+	#####################################################
+
+		COMBINE_FILTERED_VCF_FILES ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COMBINE_FILTERED_VCF_FILES.log" \
+			-hold_jid K.01-A.01_FILTER_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT,K.02-A.01_FILTER_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/L.01_COMBINE_FILTERED_VCF_FILES.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ########################################
 # Run a bunch of steps for each sample #
 ########################################
@@ -1110,5 +1132,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		EXTRACT_INDEL_AND_MIXED
 		echo sleep 0.1s
 		FILTER_INDEL_AND_MIXED
+		echo sleep 0.1s
+		COMBINE_FILTERED_VCF_FILES
 		echo sleep 0.1s
 done
