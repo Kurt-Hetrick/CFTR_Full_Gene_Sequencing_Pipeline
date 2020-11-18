@@ -996,6 +996,28 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#######################################
+	# FILTER SNVs and REF for each sample #
+	#######################################
+
+		FILTER_SNV_AND_REF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N K.01-A.01_FILTER_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FILTER_SNV_AND_REF.log" \
+			-hold_jid K.01_EXTRACT_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/K.01-A.01_FILTER_SNV_AND_REF.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 	##########################################################################
 	# Extract INDELS and MIXED variants for each sample to add filters later #
 	##########################################################################
@@ -1060,6 +1082,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		ANNOTATE_VCF
 		echo sleep 0.1s
 		EXTRACT_SNV_AND_REF
+		echo sleep 0.1s
+		FILTER_SNV_AND_REF
 		echo sleep 0.1s
 		EXTRACT_INDEL_AND_MIXED
 		echo sleep 0.1s
