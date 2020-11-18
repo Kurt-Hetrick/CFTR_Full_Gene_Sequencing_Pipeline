@@ -1040,6 +1040,28 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#####################################################
+	# FILTER INDELS and MIXED VARIANATS for each sample #
+	#####################################################
+
+		FILTER_INDEL_AND_MIXED ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N K.02-A.01_FILTER_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FILTER_INDEL_AND_MIXED.log" \
+			-hold_jid K.02_EXTRACT_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/K.02-A.01_FILTER_INDEL_AND_MIXED.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ########################################
 # Run a bunch of steps for each sample #
 ########################################
@@ -1086,5 +1108,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		FILTER_SNV_AND_REF
 		echo sleep 0.1s
 		EXTRACT_INDEL_AND_MIXED
+		echo sleep 0.1s
+		FILTER_INDEL_AND_MIXED
 		echo sleep 0.1s
 done
