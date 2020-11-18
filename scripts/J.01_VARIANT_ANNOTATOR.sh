@@ -65,8 +65,8 @@ START_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process starts for wall cl
 
 	# write command line to file and execute the command line
 
-		echo $CMD >> $CORE_PATH/$PROJECT/COMMAND_LINES/$PROJECT"_command_lines.txt"
-		echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$PROJECT"_command_lines.txt"
+		echo $CMD >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG"_command_lines.txt"
+		echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG"_command_lines.txt"
 		echo $CMD | bash
 
 	# check the exit signal at this point.
