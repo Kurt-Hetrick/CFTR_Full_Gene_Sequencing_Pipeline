@@ -50,7 +50,6 @@ START_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process starts for wall cl
 			CMD=$CMD" --annotation AlleleBalanceBySample" \
 			CMD=$CMD" --annotation AlleleCountBySample" \
 			CMD=$CMD" --annotation GCContent" \
-			CMD=$CMD" --annotation GenotypeSummaries" \
 			CMD=$CMD" --annotation HomopolymerRun" \
 			CMD=$CMD" --annotation TandemRepeatAnnotator" \
 			CMD=$CMD" --annotation VariantType" \
