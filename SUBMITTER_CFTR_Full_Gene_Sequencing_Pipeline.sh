@@ -34,6 +34,10 @@
 
 		GVCF_PAD="250"
 
+	# CFTR TARGET REGION, THIS IS BASED OF THE FILE OF INTERVALS I RECEIVED FROM MELIS
+
+		CFTR_TARGET_REGION="7:117109053-117314054"
+
 	## This will always put the current working directory in front of any directory for PATH
 	## added /bin for RHEL6
 
@@ -146,15 +150,10 @@
 	GENE_LIST="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/RefSeqGene.GRCh37.rCRS.MT.bed"
 		# md5 dec069c279625cfb110c2e4c5480e036
 	VERIFY_VCF="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
-	CODING_BED="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINES/TWIST/JHGenomics_CGC_Clinical_Exome_Control_Set/GRCh37_RefSeqSelect_OMIM_DDL_CDS_exon_primary_assembly_NoYpar_HGNC_annotated.bed"
-	CYTOBAND_BED="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/GRCh37.Cytobands.bed"
-	HAPMAP="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/hapmap_3.3.b37.vcf"
-	OMNI_1KG="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/1000G_omni2.5.b37.vcf"
-	HI_CONF_1KG_PHASE1_SNP="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/1000G_phase1.snps.high_confidence.b37.vcf"
-	MILLS_1KG_GOLD_INDEL="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/Mills_and_1000G_gold_standard.indels.b37.vcf"
+
+
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
-	CONTROL_PED_FILE="$CONTROL_REPO/TWIST_CONTROL_SET1.200601.ped"
 	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
 
 #################################
@@ -1062,9 +1061,9 @@ done
 				$SUBMIT_STAMP
 		}
 
-	#####################################################
+	###############################################################
 	# COMBINE FILTERED INDELS and MIXED VARIANATS for each sample #
-	#####################################################
+	###############################################################
 
 		COMBINE_FILTERED_VCF_FILES ()
 		{
@@ -1080,6 +1079,28 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	############################################
+	# EXTRACT ALL SITES FOR CFTR TARGET REGION #
+	############################################
+
+		EXTRACT_CFTR_TARGET_REGION ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N M.01_EXTRACT_CFTR_TARGET_REGION"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CFTR_TARGET_REGION.log" \
+			-hold_jid L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/M.01_EXTRACT_CFTR_TARGET_REGION.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$CFTR_TARGET_REGION \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1134,5 +1155,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		FILTER_INDEL_AND_MIXED
 		echo sleep 0.1s
 		COMBINE_FILTERED_VCF_FILES
+		echo sleep 0.1s
+		EXTRACT_CFTR_TARGET_REGION
 		echo sleep 0.1s
 done
