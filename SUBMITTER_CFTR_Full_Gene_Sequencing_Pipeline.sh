@@ -155,6 +155,7 @@
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
+	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/Panel1_BarcodeSNPs.bed"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -1105,6 +1106,29 @@ done
 				$SUBMIT_STAMP
 		}
 
+	########################
+	# EXTRACT BARCODE SNPS #
+	########################
+
+		EXTRACT_BARCODE_SNPS ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_BARCODE_SNPS.log" \
+			-hold_jid L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/M.02_EXTRACT_BARCODE_SNPS.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$BARCODE_SNPS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ########################################
 # Run a bunch of steps for each sample #
 ########################################
@@ -1157,5 +1181,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		COMBINE_FILTERED_VCF_FILES
 		echo sleep 0.1s
 		EXTRACT_CFTR_TARGET_REGION
+		echo sleep 0.1s
+		EXTRACT_BARCODE_SNPS
 		echo sleep 0.1s
 done
