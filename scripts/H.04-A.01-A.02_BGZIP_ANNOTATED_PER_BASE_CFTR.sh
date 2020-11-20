@@ -42,7 +42,7 @@ START_PER_BASE_BGZIP=`date '+%s'` # capture time process starts for wall clock t
 		CMD="singularity exec $ALIGNMENT_CONTAINER bgzip" \
 			CMD=$CMD" -c" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt" \
-			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt.gz"
+			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt.gz"
 
 	# write command line to file and execute the command line
 

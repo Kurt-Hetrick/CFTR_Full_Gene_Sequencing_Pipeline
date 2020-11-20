@@ -52,6 +52,7 @@ START_PER_BASE=`date '+%s'` # capture time process starts for wall clock trackin
 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt
 
 # SORT THE FILE IN KARYOTYPIC ORDER.
+# THIS IS NOT NECESSARY WHEN DOING JUST CFTR
 
 	(head -n 1 $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt ; \
 	awk '$1~/^[0-9]/' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt | sort -k1,1n -k 2,2n ; \
