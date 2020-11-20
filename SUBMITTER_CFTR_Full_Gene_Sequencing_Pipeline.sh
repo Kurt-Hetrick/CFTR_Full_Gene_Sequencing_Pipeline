@@ -208,6 +208,7 @@
 			# 12  Genome_Ref=the reference genome used in the analysis pipeline
 
 				REF_GENOME=${SAMPLE_ARRAY[4]}
+					REF_DICT=$(echo $REF_GENOME | sed 's/fasta$/dict/g; s/fa$/dict/g')
 
 			#####################################
 			# 13  Operator: SKIP ################
@@ -242,7 +243,7 @@
 		MAKE_PROJ_DIR_TREE ()
 		{
 			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS} \
-			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
@@ -870,7 +871,7 @@ done
 			qsub \
 				$QSUB_ARGS \
 			-N H.05-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/$LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER.log" \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER.log" \
 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.05_HAPLOTYPE_CALLER.sh \
 				$GATK_3_7_0_CONTAINER \
@@ -1106,6 +1107,51 @@ done
 				$SUBMIT_STAMP
 		}
 
+	################################
+	# INDEX CFTR TARGET REGION VCF #
+	################################
+
+		INDEX_CFTR_TARGET_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N M.01-A.01_INDEX_CFTR_TARGET_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CFTR_TARGET_VCF.log" \
+			-hold_jid M.01_EXTRACT_CFTR_TARGET_REGION"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/M.01-A.01_VCF_INDEX_CFTR_TARGET_VCF.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	###############################################
+	# GENERATE VCF METRICS FOR CFTR TARGET REGION #
+	###############################################
+
+		VCF_METRICS_CFTR_TARGET ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VCF_METRICS_CFTR_TARGET.log" \
+			-hold_jid M.01-A.01_INDEX_CFTR_TARGET_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/M.01-A.01-A.01_VCF_METRICS_CFTR_TARGET.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_DICT \
+				$DBSNP \
+				$TARGET_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 	########################
 	# EXTRACT BARCODE SNPS #
 	########################
@@ -1181,6 +1227,10 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		COMBINE_FILTERED_VCF_FILES
 		echo sleep 0.1s
 		EXTRACT_CFTR_TARGET_REGION
+		echo sleep 0.1s
+		INDEX_CFTR_TARGET_VCF
+		echo sleep 0.1s
+		VCF_METRICS_CFTR_TARGET
 		echo sleep 0.1s
 		EXTRACT_BARCODE_SNPS
 		echo sleep 0.1s
