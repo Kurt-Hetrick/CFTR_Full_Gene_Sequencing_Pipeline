@@ -155,7 +155,7 @@
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
-	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/Panel1_BarcodeSNPs.bed"
+	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTRFullGene_BarcodeSNPs.bed"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -243,7 +243,7 @@
 		MAKE_PROJ_DIR_TREE ()
 		{
 			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS} \
-			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
@@ -1175,6 +1175,32 @@ done
 				$SUBMIT_STAMP
 		}
 
+##################################
+# QC REPORT PREP FOR EACH SAMPLE #
+##################################
+
+QC_REPORT_PREP ()
+{
+echo \
+qsub \
+	$QSUB_ARGS \
+-N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
+	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
+-hold_jid \
+M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
+M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
+H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
+	$ALIGNMENT_CONTAINER \
+	$CORE_PATH \
+	$PROJECT \
+	$SM_TAG \
+	$SAMPLE_SHEET \
+	$SUBMIT_STAMP
+}
+
 ########################################
 # Run a bunch of steps for each sample #
 ########################################
@@ -1233,5 +1259,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		VCF_METRICS_CFTR_TARGET
 		echo sleep 0.1s
 		EXTRACT_BARCODE_SNPS
+		echo sleep 0.1s
+		QC_REPORT_PREP
 		echo sleep 0.1s
 done
