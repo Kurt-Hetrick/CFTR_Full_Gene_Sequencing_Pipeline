@@ -503,7 +503,7 @@
 
 			else
 
-				awk 'BEGIN {FS="\t";OFS="\t"} NR==8 {print $2,$3,$4,$5,$6,$7,$8,$9*100,$10,$11,$12,$13,$14,$15*100,$16,$17,\
+				awk 'BEGIN {FS="\t";OFS="\t"} NR==8 {print $2,$3,$4,$5,$6,$7,$8,$9,$10*100,$11,$12,$13,$14,$15,$16*100,$17,\
 					$18,$19,$20,$21,$22,$23,$24,$25}' \
 				$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/VCF_METRICS/$SM_TAG".CFTR_REGION.variant_calling_detail_metrics.txt" \
 					| singularity exec $ALIGNMENT_CONTAINER datamash transpose \

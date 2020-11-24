@@ -1263,3 +1263,72 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		QC_REPORT_PREP
 		echo sleep 0.1s
 done
+
+#############################
+##### END PROJECT TASKS #####
+#############################
+
+# grab email addy
+
+	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
+
+# grab submitter's name
+
+	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
+# build hold id for qc report prep per sample, per project
+
+	BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP ()
+	{
+		HOLD_ID_PATH="-hold_jid "
+
+		for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} $1=="'$PROJECT'" {print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			HOLD_ID_PATH=$HOLD_ID_PATH"X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT"","
+			HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
+		done
+	}
+
+# run end project functions (qc report, file clean-up) for each project
+
+	PROJECT_WRAP_UP ()
+	{
+		echo \
+		qsub \
+			$QSUB_ARGS \
+			-l excl=true \
+		-N X.01-X.01_END_PROJECT_TASKS"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$PROJECT"-END_PROJECT_TASKS.log" \
+		$HOLD_ID_PATH \
+		$SCRIPT_DIR/X.01-X.01-END_PROJECT_TASKS.sh \
+			$ALIGNMENT_CONTAINER \
+			$CORE_PATH \
+			$PROJECT \
+			$SCRIPT_DIR \
+			$SUBMITTER_ID \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
+	}
+
+# final loop
+
+for PROJECT in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} NR>1 {print $1}' \
+			| sort \
+			| uniq);
+	do
+		BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP
+		PROJECT_WRAP_UP
+done
+
+EMAIL WHEN DONE SUBMITTING
+
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
+	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+		$SEND_TO
