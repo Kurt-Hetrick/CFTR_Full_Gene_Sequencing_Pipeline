@@ -48,6 +48,10 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /downloads
 
+RUN apt-get update && \
+	apt-get install -y \
+	parallel=20161222-1~ubuntu0.16.04.1
+
 RUN wget -nv $PICARD_URL && \
 	mv picard.jar /gatk/picard.jar
 

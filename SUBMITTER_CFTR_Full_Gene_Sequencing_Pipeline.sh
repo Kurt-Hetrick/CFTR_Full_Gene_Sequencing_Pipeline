@@ -98,7 +98,7 @@
 # PIPELINE PROGRAMS #
 #####################
 
-	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CIDRSeqSuite/images/ddl_ce_control_align-0.0.3.simg"
+	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/images/ddl_ce_control_align-0.0.4.simg"
 	# contains the following software and is on Ubuntu 16.04.5 LTS
 		# gatk 4.0.11.0 (base image). also contains the following.
 			# Python 3.6.2 :: Continuum Analytics, Inc.
@@ -1327,7 +1327,7 @@ for PROJECT in $(awk 1 $SAMPLE_SHEET \
 		PROJECT_WRAP_UP
 done
 
-EMAIL WHEN DONE SUBMITTING
+# EMAIL WHEN DONE SUBMITTING
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
