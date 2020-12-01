@@ -49,8 +49,8 @@ START_PER_INTERVAL=`date '+%s'` # capture time process starts for wall clock tra
 			-b - \
 			-wb \
 		| awk '{OFS=","} BEGIN {print "#CHROM" "," "START" "," "END" "," "GENE" "," "TRANSCRIPT" "," "EXON" "," "STRAND" "," \
-			"TOTAL_CVG" "," "AVG_CVG" "," "Q1_CVG" "," "MEDIAN_CVG" "," "Q3_CVG" "," "PCT_20x" "," "PCT_30x" "," "PCT_50x"} \
-			{print $1,$2,$3,$4,$5,$6,$7,$11,$12,$13,$14,$15,$16,$17,$18}' \
+			"TOTAL_CVG" "," "AVG_CVG" "," "Q1_CVG" "," "MEDIAN_CVG" "," "Q3_CVG" "," "PCT_20x" "," "PCT_30x" "," "PCT_50x" "," "SM_TAG"} \
+			{print $1,$2,$3,$4,$5,$6,$7,$11,$12,$13,$14,$15,$16,$17,$18,"'$SM_TAG'"}' \
 	>| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG"_CFTR_regions_coverage_summary.csv"
 
 END_PER_INTERVAL=`date '+%s'` # capture time process starts for wall clock tracking purposes.

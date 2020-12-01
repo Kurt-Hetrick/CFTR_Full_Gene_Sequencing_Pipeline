@@ -47,8 +47,8 @@ START_PER_BASE=`date '+%s'` # capture time process starts for wall clock trackin
 			-a $CFTR_BED \
 			-b - \
 			-wb \
-		| awk '{OFS="\t"} BEGIN {print "#CHROM" "\t" "POS" "\t" "GENE" "\t" "TRANSCRIPT" "\t" "EXON" "\t" "STRAND" "\t" "DEPTH"} \
-			{print $1,$3,$4,$5,$6,$7,$11}' \
+		| awk '{OFS="\t"} BEGIN {print "#CHROM" "\t" "POS" "\t" "GENE" "\t" "TRANSCRIPT" "\t" "EXON" "\t" "STRAND" "\t" "DEPTH" "\t" "SM_TAG"} \
+			{print $1,$3,$4,$5,$6,$7,$11,"'$SM_TAG'"}' \
 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt
 
 # SORT THE FILE IN KARYOTYPIC ORDER.
