@@ -99,49 +99,56 @@
 #####################
 
 	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/images/ddl_ce_control_align-0.0.4.simg"
-	# contains the following software and is on Ubuntu 16.04.5 LTS
-		# gatk 4.0.11.0 (base image). also contains the following.
-			# Python 3.6.2 :: Continuum Analytics, Inc.
-				# samtools 0.1.19
-				# bcftools 0.1.19
-				# bedtools v2.25.0
-				# bgzip 1.2.1
-				# tabix 1.2.1
-				# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
-				# R 3.2.5
-					# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
-					# getopt_1.20.0.tar.gz
-					# optparse_1.3.2.tar.gz
-					# data.table_1.10.4-2.tar.gz
-					# gsalib_2.1.tar.gz
-					# ggplot2_2.2.1.tar.gz
-				# openjdk version "1.8.0_181"
-				# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
-		# added
-			# picard.jar 2.17.0 (as /gatk/picard.jar)
-			# samblaster-v.0.1.24
-			# sambamba-0.6.8
-			# bwa-0.7.15
-			# datamash-1.6
-			# verifyBamID v1.1.3
-			# samtools 1.10
-			# bgzip 1.10
-			# tabix 1.10
-			# bcftools 1.10.2
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ddl_ce_control_align:0.0.4
+			# contains the following software and is on Ubuntu 16.04.5 LTS
+				# gatk 4.0.11.0 (base image). also contains the following.
+					# Python 3.6.2 :: Continuum Analytics, Inc.
+						# samtools 0.1.19
+						# bcftools 0.1.19
+						# bedtools v2.25.0
+						# bgzip 1.2.1
+						# tabix 1.2.1
+						# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
+						# R 3.2.5
+							# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
+							# getopt_1.20.0.tar.gz
+							# optparse_1.3.2.tar.gz
+							# data.table_1.10.4-2.tar.gz
+							# gsalib_2.1.tar.gz
+							# ggplot2_2.2.1.tar.gz
+						# openjdk version "1.8.0_181"
+						# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
+				# added
+					# picard.jar 2.17.0 (as /gatk/picard.jar)
+					# samblaster-v.0.1.24
+					# sambamba-0.6.8
+					# bwa-0.7.15
+					# datamash-1.6
+					# verifyBamID v1.1.3
+					# samtools 1.10
+					# bgzip 1.10
+					# tabix 1.10
+					# bcftools 1.10.2
+					# parallel 20161222
 
 	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/CIDRSeqSuite/images/gatk3-3.7-0.simg"
-	# singularity pull docker://broadinstitute/gatk3:3.7-0
-	# used for generating the depth of coverage reports.
-		# comes with R 3.1.1 with appropriate packages needed to create gatk pdf output
-		# also comes with some version of java 1.8
-		# jar file is /usr/GenomeAnalysisTK.jar
+		# singularity pull docker://broadinstitute/gatk3:3.7-0
+			# used for generating the depth of coverage reports.
+				# comes with R 3.1.1 with appropriate packages needed to create gatk pdf output
+				# also comes with some version of java 1.8
+				# jar file is /usr/GenomeAnalysisTK.jar
 
-	# PIPELINE PROGRAMS TO BE IMPLEMENTED
-	JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
-	SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
-	VCFTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/vcftools_0.1.12b/bin"
-	CIDRSEQSUITE_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/CIDRSeqSuiteSoftware_Version_4_0/"
-	ANNOVAR_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/ANNOVAR/2013_09_11"
+	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/images/manta-1.6.0.0.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/manta:1.6.0.0
+			# singularity 2 creates a simg file (this is what I used)
+			# singularity 3 (this is what the cgc nodes have) creates a .sif file
+
+	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
+		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
+		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
+		VCFTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/vcftools_0.1.12b/bin"
+		CIDRSEQSUITE_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/CIDRSeqSuiteSoftware_Version_4_0/"
+		ANNOVAR_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/ANNOVAR/2013_09_11"
 
 ##################
 # PIPELINE FILES #
@@ -150,12 +157,13 @@
 	GENE_LIST="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/RefSeqGene.GRCh37.rCRS.MT.bed"
 		# md5 dec069c279625cfb110c2e4c5480e036
 	VERIFY_VCF="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
-
-
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
-	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
 	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTRFullGene_BarcodeSNPs.bed"
+	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/twistCFTRpanelregion_grch37.bed.gz"
+	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/configManta_CFTR.py.ini"
+
+	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -242,7 +250,7 @@
 
 		MAKE_PROJ_DIR_TREE ()
 		{
-			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS} \
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -1174,6 +1182,102 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+##############################################################
+##### STRUCTURAL VARIANT ANALYSIS USING ILLUMINA'S MANTA #####
+##############################################################
+
+	##################################################################
+	# MANTA RUN CONFIGURATION ########################################
+	##################################################################
+	# The config file was modified such that #########################
+	##### minEdgeObservations = 2 and (instead of 3) #################
+	##### minCandidateSpanningCount = 2 (instead of 3) ###############
+	##### this file is called during run configuration $MANTA_CONFIG #
+	##################################################################
+
+		CONFIGURE_MANTA ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CONFIGURE_MANTA.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06_CONFIGURE_MANTA.sh \
+				$MANTA_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$MANTA_CFTR_BED \
+				$MANTA_CONFIG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	##################################################################
+	# MANTA RUN CONFIGURATION ########################################
+	##################################################################
+	# The config file was modified such that #########################
+	##### minEdgeObservations = 2 and (instead of 3) #################
+	##### minCandidateSpanningCount = 2 (instead of 3) ###############
+	##### this file is called during run configuration $MANTA_CONFIG #
+	##################################################################
+
+		CONFIGURE_MANTA ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CONFIGURE_MANTA.log" \
+			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06-CONFIGURE_MANTA.sh \
+				$MANTA_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$MANTA_CFTR_BED \
+				$MANTA_CONFIG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	#############
+	# RUN MANTA #
+	#############
+
+		RUN_MANTA ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+			-N H.06-A.01-RUN_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-RUN_MANTA.log" \
+			-hold_jid H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06-A.01-RUN_MANTA.sh \
+				$MANTA_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
+		| sort \
+		| uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+		CONFIGURE_MANTA
+		echo sleep 0.1s
+		RUN_MANTA
+		echo sleep 0.1s
+done
 
 ##################################
 # QC REPORT PREP FOR EACH SAMPLE #
