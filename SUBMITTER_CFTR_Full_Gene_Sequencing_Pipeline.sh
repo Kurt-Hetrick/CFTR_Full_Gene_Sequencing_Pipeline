@@ -16,9 +16,9 @@
 		# if no 3rd argument present then the default is 6
 		# if you want to set this then you need to set the 2nd argument as well (even to the default)
 
-		if [[ ! $QUEUE_LIST ]]
+		if [[ ! $THREADS ]]
 			then
-			QUEUE_LIST="6"
+			THREADS="6"
 		fi
 
 	PRIORITY=$4 # optional. how high you want the tasks to have when submitting.
@@ -207,6 +207,7 @@
 	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTRFullGene_BarcodeSNPs.bed"
 	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/twistCFTRpanelregion_grch37.bed.gz"
 	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/configManta_CFTR.py.ini"
+	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
 
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 
@@ -1262,6 +1263,96 @@ done
 				$SUBMIT_STAMP
 		}
 
+##################################
+# QC REPORT PREP FOR EACH SAMPLE #
+##################################
+
+QC_REPORT_PREP ()
+{
+echo \
+qsub \
+	$QSUB_ARGS \
+	$STANDARD_QUEUE_QSUB_ARG \
+-N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
+	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
+-hold_jid \
+M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
+M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
+H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
+	$ALIGNMENT_CONTAINER \
+	$CORE_PATH \
+	$PROJECT \
+	$SM_TAG \
+	$SAMPLE_SHEET \
+	$SUBMIT_STAMP
+}
+
+########################################
+# Run a bunch of steps for each sample #
+########################################
+
+for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
+			| sort \
+			| uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+		COLLECT_MULTIPLE_METRICS
+		echo sleep 0.1s
+		COLLECT_HS_METRICS
+		echo sleep 0.1s
+		SELECT_VERIFYBAMID_VCF
+		echo sleep 0.1s
+		RUN_VERIFYBAMID
+		echo sleep 0.1s
+		DOC_CFTR
+		echo sleep 0.1s
+		ANNOTATE_PER_BASE_REPORT_CFTR
+		echo sleep 0.1s
+		FILTER_ANNOTATED_PER_BASE_REPORT_CFTR
+		echo sleep 0.1s
+		BGZIP_ANNOTATED_PER_BASE_REPORT_CFTR
+		echo sleep 0.1s
+		TABIX_ANNOTATED_PER_BASE_REPORT_CFTR
+		echo sleep 0.1s
+		ANNOTATE_PER_CFTR_FEATURE
+		echo sleep 0.1s
+		CALL_HAPLOTYPE_CALLER
+		echo sleep 0.1s
+		HC_BAM_TO_CRAM
+		echo sleep 0.1s
+		INDEX_HC_CRAM
+		echo sleep 0.1s
+		GENOTYPE_GVCF
+		echo sleep 0.1s
+		ANNOTATE_VCF
+		echo sleep 0.1s
+		EXTRACT_SNV_AND_REF
+		echo sleep 0.1s
+		FILTER_SNV_AND_REF
+		echo sleep 0.1s
+		EXTRACT_INDEL_AND_MIXED
+		echo sleep 0.1s
+		FILTER_INDEL_AND_MIXED
+		echo sleep 0.1s
+		COMBINE_FILTERED_VCF_FILES
+		echo sleep 0.1s
+		EXTRACT_CFTR_TARGET_REGION
+		echo sleep 0.1s
+		INDEX_CFTR_TARGET_VCF
+		echo sleep 0.1s
+		VCF_METRICS_CFTR_TARGET
+		echo sleep 0.1s
+		EXTRACT_BARCODE_SNPS
+		echo sleep 0.1s
+		QC_REPORT_PREP
+		echo sleep 0.1s
+done
+
 ##############################################################
 ##### STRUCTURAL VARIANT ANALYSIS USING ILLUMINA'S MANTA #####
 ##############################################################
@@ -1381,6 +1472,28 @@ done
 
 	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice
 
+		RUN_VEP_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG\
+				$VEP_HTSLIB_QSUB_ARG \
+				$VEP_PERL5LIB_QSUB_ARG \
+			-N O.02-VEP_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VEP_VCF.log" \
+			-hold_jid N.01-VARIANT_ONLY_CFTR_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.02-VEP_VCF.sh \
+				$VEP_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$VEP_REF_CACHE \
+				$THREADS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -1392,96 +1505,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		RUN_SPLICEAI
 		echo sleep 0.1s
-done
-
-
-##################################
-# QC REPORT PREP FOR EACH SAMPLE #
-##################################
-
-QC_REPORT_PREP ()
-{
-echo \
-qsub \
-	$QSUB_ARGS \
-	$STANDARD_QUEUE_QSUB_ARG \
--N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
-	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
--hold_jid \
-M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
-M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
-H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
-	$ALIGNMENT_CONTAINER \
-	$CORE_PATH \
-	$PROJECT \
-	$SM_TAG \
-	$SAMPLE_SHEET \
-	$SUBMIT_STAMP
-}
-
-########################################
-# Run a bunch of steps for each sample #
-########################################
-
-for SAMPLE in $(awk 1 $SAMPLE_SHEET \
-			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-			| awk 'BEGIN {FS=","} NR>1 {print $8}' \
-			| sort \
-			| uniq );
-	do
-		CREATE_SAMPLE_ARRAY
-		COLLECT_MULTIPLE_METRICS
-		echo sleep 0.1s
-		COLLECT_HS_METRICS
-		echo sleep 0.1s
-		SELECT_VERIFYBAMID_VCF
-		echo sleep 0.1s
-		RUN_VERIFYBAMID
-		echo sleep 0.1s
-		DOC_CFTR
-		echo sleep 0.1s
-		ANNOTATE_PER_BASE_REPORT_CFTR
-		echo sleep 0.1s
-		FILTER_ANNOTATED_PER_BASE_REPORT_CFTR
-		echo sleep 0.1s
-		BGZIP_ANNOTATED_PER_BASE_REPORT_CFTR
-		echo sleep 0.1s
-		TABIX_ANNOTATED_PER_BASE_REPORT_CFTR
-		echo sleep 0.1s
-		ANNOTATE_PER_CFTR_FEATURE
-		echo sleep 0.1s
-		CALL_HAPLOTYPE_CALLER
-		echo sleep 0.1s
-		HC_BAM_TO_CRAM
-		echo sleep 0.1s
-		INDEX_HC_CRAM
-		echo sleep 0.1s
-		GENOTYPE_GVCF
-		echo sleep 0.1s
-		ANNOTATE_VCF
-		echo sleep 0.1s
-		EXTRACT_SNV_AND_REF
-		echo sleep 0.1s
-		FILTER_SNV_AND_REF
-		echo sleep 0.1s
-		EXTRACT_INDEL_AND_MIXED
-		echo sleep 0.1s
-		FILTER_INDEL_AND_MIXED
-		echo sleep 0.1s
-		COMBINE_FILTERED_VCF_FILES
-		echo sleep 0.1s
-		EXTRACT_CFTR_TARGET_REGION
-		echo sleep 0.1s
-		INDEX_CFTR_TARGET_VCF
-		echo sleep 0.1s
-		VCF_METRICS_CFTR_TARGET
-		echo sleep 0.1s
-		EXTRACT_BARCODE_SNPS
-		echo sleep 0.1s
-		QC_REPORT_PREP
+		RUN_VEP_VCF
 		echo sleep 0.1s
 done
 
