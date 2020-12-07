@@ -24,7 +24,7 @@
 
 # INPUT VARIABLES
 
-	GATK_3_7_0_CONTAINER=$1
+	SPLICEAI_CONTAINER=$1
 	CORE_PATH=$2
 
 	PROJECT=$3
@@ -34,33 +34,21 @@
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$7
 
-# APPLY HARD FILTERS TO SNV AND REFERENCE SITES
+## RUN SPLICEAI
+## SPLICEAI CAN ONLY BE RUN ON SERVERS WHOSE CPU SUPPORTS AVX
+## CURRENTLY THE ONLY SERVERS THAT DON'T ARE THE c6100s (prod.q,rnd.q,c6100-4,c610-8)
 
-START_FILTER_SNV_AND_REF=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_SPLICEAI=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
-# construct command line
+	# construct command line
 
-	CMD="singularity exec $GATK_3_7_0_CONTAINER java -jar" \
-		CMD=$CMD" /usr/GenomeAnalysisTK.jar" \
-	CMD=$CMD" -T VariantFiltration" \
-		CMD=$CMD" -R $REF_GENOME" \
-		CMD=$CMD" --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG.RAW.ANNOTATED.SNV_REF.vcf.gz" \
-		CMD=$CMD" -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG.FILTERED.SNV_REF.vcf.gz" \
-		CMD=$CMD" --filterExpression 'QD < 2.0'" \
-		CMD=$CMD" --filterName 'QDfilter'" \
-		CMD=$CMD" --filterExpression 'ABHet > 0.80'" \
-		CMD=$CMD" --filterName 'ABfilter80'" \
-		CMD=$CMD" --filterExpression 'ABHet < 0.20'" \
-		CMD=$CMD" --filterName 'ABfilter20'" \
-		CMD=$CMD" --filterExpression 'QUAL < 30.0'" \
-		CMD=$CMD" --filterName 'QUALfilter'" \
-		CMD=$CMD" --filterExpression 'FS > 40.0'" \
-		CMD=$CMD" --filterName 'FSfilter'" \
-		CMD=$CMD" --logging_level ERROR"
+		CMD="singularity exec $SPLICEAI_CONTAINER spliceai" \
+			CMD=$CMD" -I $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONY.vcf" \
+			CMD=$CMD" -O $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.vcf"" \
+			CMD=$CMD" -R $REF_GENOME" \
+			CMD=$CMD" -A grch37"
 
-END_FILTER_SNV_AND_REF=`date '+%s'` # capture time process stops for wall clock tracking purposes.
-
-# write command line to file and execute the command line
+	# write command line to file and execute the command line
 
 		echo $CMD >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG"_command_lines.txt"
 		echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG"_command_lines.txt"
@@ -80,9 +68,11 @@ END_FILTER_SNV_AND_REF=`date '+%s'` # capture time process stops for wall clock 
 			exit $SCRIPT_STATUS
 		fi
 
+END_SPLICEAI=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",L.001,FILTER_SNV_AND_REF,"$HOSTNAME","$START_FILTER_SNV_AND_REF","$END_FILTER_SNV_AND_REF \
+	echo $SM_TAG"_"$PROJECT",O.001,SPLICEAI,"$HOSTNAME","$START_SPLICEAI","$END_SPLICEAI \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

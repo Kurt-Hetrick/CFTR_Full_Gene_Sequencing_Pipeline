@@ -90,15 +90,42 @@
 				QSUB_ARGS=$QSUB_ARGS" -cwd" \
 				QSUB_ARGS=$QSUB_ARGS" -V" \
 				QSUB_ARGS=$QSUB_ARGS" -v SINGULARITY_BINDPATH=/mnt:/mnt" \
-				QSUB_ARGS=$QSUB_ARGS" -q $QUEUE_LIST" \
 				QSUB_ARGS=$QSUB_ARGS" -p $PRIORITY" \
 				QSUB_ARGS=$QSUB_ARGS" -j y"
+
+		# $QSUB_ARGS WILL BE A GENERAL BLOCK APPLIED TO ALL JOBS
+		# BELOW ARE TIMES WHEN WHEN A QSUB ARGUMENT IS ADDED OR CHANGED.
+
+			# DEFINE STANDARD LIST OF SERVERS TO SUBMIT TO.
+			# THIS IS DEFINED AS AN INPUT ARGUMENT VARIABLE TO THE PIPELINE (DEFAULT: cgc.q)
+
+				STANDARD_QUEUE_QSUB_ARG=" -q $QUEUE_LIST"
+
+			# SPLICEAI WILL NOT RUN ON SERVERS THAT DO NOT HAVE INTEL AVX CHIPSETS.
+			# which for us is the c6100s (prod.q and rnd.q).
+			# so I am removing those from $QUEUE_LIST if present and create a new variable to run spliceai
+
+				SPLICEAI_QUEUE_QSUB_ARG=$(echo " -q $QUEUE_LIST" | sed 's/rnd.q//g' | sed 's/prod.q//g')
+
+			# REQUESTING AN ENTIRE SERVER
+
+				REQUEST_ENTIRE_SERVER_QSUB_ARG=" -l excl=true"
+
+			# When you install the API modules for VEP in a non-default location (which is $HOME),
+			# you have to set the $PERL5LIB variable to the new location.
+
+				VEP_PERL5LIB_QSUB_ARG="-v PERL5LIB=/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
+
+			# the default when running the vep INSTALL.pl script installs htslib.
+			# so you are supposed to add that to the path variable.
+
+				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
 
 #####################
 # PIPELINE PROGRAMS #
 #####################
 
-	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/images/ddl_ce_control_align-0.0.4.simg"
+	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/ddl_ce_control_align-0.0.4.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ddl_ce_control_align:0.0.4
 			# contains the following software and is on Ubuntu 16.04.5 LTS
 				# gatk 4.0.11.0 (base image). also contains the following.
@@ -131,17 +158,22 @@
 					# bcftools 1.10.2
 					# parallel 20161222
 
-	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/CIDRSeqSuite/images/gatk3-3.7-0.simg"
+	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/gatk3-3.7-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 			# used for generating the depth of coverage reports.
 				# comes with R 3.1.1 with appropriate packages needed to create gatk pdf output
 				# also comes with some version of java 1.8
 				# jar file is /usr/GenomeAnalysisTK.jar
 
-	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/images/manta-1.6.0.0.simg"
+	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/manta-1.6.0.0.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/manta:1.6.0.0
 			# singularity 2 creates a simg file (this is what I used)
 			# singularity 3 (this is what the cgc nodes have) creates a .sif file
+
+	SPLICEAI_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/spliceai-1.3.1.1.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/spliceai:1.3.1.1
+			# has to run an servers where the CPU supports AVX
+			# the only ones that don't are the c6100s (prod.q,rnd.q,c6100-4,c6100-8)
 
 	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
 		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
@@ -250,7 +282,7 @@
 
 		MAKE_PROJ_DIR_TREE ()
 		{
-			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA} \
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -395,6 +427,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
 			$SCRIPT_DIR/A.01_BWA.sh \
@@ -500,6 +533,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BED_FILES.log" \
 			-hold_jid B.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -524,6 +558,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
 			-hold_jid B.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -552,6 +587,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-APPLY_BQSR.log" \
 			-hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -574,6 +610,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BAM_TO_CRAM.log" \
 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -596,6 +633,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CRAM.log" \
 			-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
@@ -646,6 +684,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -673,6 +712,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_HS_METRICS.log" \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -700,6 +740,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -725,6 +766,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
 			-hold_jid H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -750,6 +792,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-DOC_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_CFTR.log" \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -774,6 +817,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-A.01_ANNOTATE_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_BASE_CFTR.log" \
 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,H.04-DOC_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -795,6 +839,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-A.01-A.01_FILTER_ANNOTATED_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FILTER_ANNOTATED_PER_BASE_CFTR.log" \
 			-hold_jid H.04-A.01_ANNOTATE_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -813,6 +858,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-A.01-A.02_BGZIP_ANNOTATED_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BGZIP_ANNOTATED_PER_BASE_CFTR.log" \
 			-hold_jid H.04-A.01_ANNOTATE_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -834,6 +880,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-A.01-A.02-A.01_TABIX_ANNOTATED_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-TABIX_ANNOTATED_PER_BASE_CFTR.log" \
 			-hold_jid H.04-A.01-A.02_BGZIP_ANNOTATED_PER_BASE_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -855,6 +902,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.04-A.02_ANNOTATE_PER_CFTR_FEATURE"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_PER_CFTR_FEATURE.log" \
 			-hold_jid H.04-DOC_CFTR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -878,6 +926,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.05-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER.log" \
 			-hold_jid C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT,E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
@@ -902,6 +951,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.05-A.01_HAPLOTYPE_CALLER_BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_BAM_TO_CRAM.log" \
 			-hold_jid H.05-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT \
@@ -924,6 +974,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.05-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_INDEX_CRAM.log" \
 			-hold_jid H.05-A.01_HAPLOTYPE_CALLER_BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
@@ -946,6 +997,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N I.01_GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF.log" \
 			-hold_jid H.05-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT \
@@ -969,6 +1021,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N J.01_ANNOTATE_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_VCF.log" \
 			-hold_jid I.01_GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -992,6 +1045,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N K.01_EXTRACT_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_SNV_AND_REF.log" \
 			-hold_jid J.01_ANNOTATE_VCF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1014,6 +1068,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N K.01-A.01_FILTER_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FILTER_SNV_AND_REF.log" \
 			-hold_jid K.01_EXTRACT_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1036,6 +1091,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N K.02_EXTRACT_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_INDEL_AND_MIXED.log" \
 			-hold_jid J.01_ANNOTATE_VCF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1058,6 +1114,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N K.02-A.01_FILTER_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FILTER_INDEL_AND_MIXED.log" \
 			-hold_jid K.02_EXTRACT_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1080,6 +1137,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COMBINE_FILTERED_VCF_FILES.log" \
 			-hold_jid K.01-A.01_FILTER_SNV_AND_REF"_"$SGE_SM_TAG"_"$PROJECT,K.02-A.01_FILTER_INDEL_AND_MIXED"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1102,6 +1160,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N M.01_EXTRACT_CFTR_TARGET_REGION"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CFTR_TARGET_REGION.log" \
 			-hold_jid L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1124,6 +1183,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N M.01-A.01_INDEX_CFTR_TARGET_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CFTR_TARGET_VCF.log" \
 			-hold_jid M.01_EXTRACT_CFTR_TARGET_REGION"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1145,6 +1205,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VCF_METRICS_CFTR_TARGET.log" \
 			-hold_jid M.01-A.01_INDEX_CFTR_TARGET_VCF"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1169,6 +1230,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_BARCODE_SNPS.log" \
 			-hold_jid L.01_COMBINE_FILTERED_VCF_FILES"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1201,35 +1263,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
-			-N H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CONFIGURE_MANTA.log" \
-			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.06_CONFIGURE_MANTA.sh \
-				$MANTA_CONTAINER \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$REF_GENOME \
-				$MANTA_CFTR_BED \
-				$MANTA_CONFIG \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
-
-	##################################################################
-	# MANTA RUN CONFIGURATION ########################################
-	##################################################################
-	# The config file was modified such that #########################
-	##### minEdgeObservations = 2 and (instead of 3) #################
-	##### minCandidateSpanningCount = 2 (instead of 3) ###############
-	##### this file is called during run configuration $MANTA_CONFIG #
-	##################################################################
-
-		CONFIGURE_MANTA ()
-		{
-			echo \
-			qsub \
-				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CONFIGURE_MANTA.log" \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1254,6 +1288,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N H.06-A.01-RUN_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-RUN_MANTA.log" \
 			-hold_jid H.06-CONFIGURE_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1279,6 +1314,67 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 done
 
+#######################################
+##### CRYPTIC SPLICING ALGORITHMS #####
+#######################################
+
+	# FILTER CFTR FULL VCF TO VCF ONLY CONTAINING VARIANTS.
+
+		VARIANT_ONLY_CFTR_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N N.01-VARIANT_ONLY_CFTR_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VARIANT_ONLY_CFTR_VCF.log" \
+			-hold_jid M.01-A.01_INDEX_CFTR_TARGET_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/N.01-VARIANT_ONLY_CFTR_VCF.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	# SPLICEAI CAN ONLY BE RUN SERVERS THAT SUPPORT AVX
+	# CURRENTLY THE ONLY SERVERS THAT DON'T ARE THE c6100s (prod.q,rnd.q,c6100-4 and c6100-8)
+
+		RUN_SPLICEAI ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$SPLICEAI_QUEUE_QSUB_ARG \
+			-N O.01-SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SPLICEAI.log" \
+			-hold_jid N.01-VARIANT_ONLY_CFTR_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.01-SPLICEAI.sh \
+				$SPLICEAI_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
+		| sort \
+		| uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+		VARIANT_ONLY_CFTR_VCF
+		echo sleep 0.1s
+		RUN_SPLICEAI
+		echo sleep 0.1s
+done
+
+
 ##################################
 # QC REPORT PREP FOR EACH SAMPLE #
 ##################################
@@ -1288,6 +1384,7 @@ QC_REPORT_PREP ()
 echo \
 qsub \
 	$QSUB_ARGS \
+	$STANDARD_QUEUE_QSUB_ARG \
 -N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
 	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
 -hold_jid \
@@ -1405,7 +1502,8 @@ done
 		echo \
 		qsub \
 			$QSUB_ARGS \
-			-l excl=true \
+			$STANDARD_QUEUE_QSUB_ARG \
+			$REQUEST_ENTIRE_SERVER_QSUB_ARG \
 		-N X.01-X.01_END_PROJECT_TASKS"_"$PROJECT \
 			-o $CORE_PATH/$PROJECT/LOGS/$PROJECT"-END_PROJECT_TASKS.log" \
 		$HOLD_ID_PATH \
