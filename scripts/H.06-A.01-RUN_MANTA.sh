@@ -29,9 +29,10 @@
 
 	PROJECT=$3
 	SM_TAG=$4
-	SAMPLE_SHEET=$5
+	THREADS=$5
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$6
+	SUBMIT_STAMP=$7
 
 ## RUN MANTA
 
@@ -41,7 +42,7 @@ START_RUN_MANTA=`date '+%s'` # capture time process starts for wall clock tracki
 
 		CMD="singularity exec $MANTA_CONTAINER" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/runWorkflow.py" \
-				CMD=$CMD" -j 6"
+				CMD=$CMD" -j $THREADS"
 
 	# write command line to file and execute the command line
 

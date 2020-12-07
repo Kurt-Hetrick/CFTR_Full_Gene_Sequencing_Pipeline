@@ -30,9 +30,10 @@
 	PROJECT=$3
 	SM_TAG=$4
 	REF_GENOME=$5
-	SAMPLE_SHEET=$6
+	THREADS=$6
+	SAMPLE_SHEET=$7
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$7
+	SUBMIT_STAMP=$8
 
 ## --write lossless cram file.
 
@@ -44,7 +45,7 @@ START_HC_CRAM=`date '+%s'` # capture time process starts for wall clock tracking
 			CMD=$CMD" view" \
 				CMD=$CMD" -C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam"" \
 				CMD=$CMD" -T $REF_GENOME" \
-				CMD=$CMD" -@ 6" \
+				CMD=$CMD" -@ $THREADS" \
 				CMD=$CMD" -O CRAM" \
 				CMD=$CMD" -o $CORE_PATH/$PROJECT/$SM_TAG/HC_CRAM/$SM_TAG".HC.cram""
 

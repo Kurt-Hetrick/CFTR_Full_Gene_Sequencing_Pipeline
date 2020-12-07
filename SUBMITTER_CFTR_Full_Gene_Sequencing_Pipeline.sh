@@ -4,16 +4,26 @@
 
 	SAMPLE_SHEET=$1
 
-	QUEUE_LIST=$2 # optional. if no 4th argument present then the default is cgc.q
-		# if you want to set this then you need to set the 3rd argument as well (even to the default)
+	QUEUE_LIST=$2 # optional. the queues that you want to submit to.
+		# if no 2nd argument present then the default is cgc.q
 
 		if [[ ! $QUEUE_LIST ]]
 			then
 			QUEUE_LIST="cgc.q"
 		fi
 
-	PRIORITY=$3 # optional. if no 5th argument present then the default is -15.
-		# if you want to set this then you need to set the 3rd and 4th argument as well (even to the default)
+	THREADS=$3 # optional. how many cpu processors you want to use for programs that are multi-threaded
+		# if no 3rd argument present then the default is 6
+		# if you want to set this then you need to set the 2nd argument as well (even to the default)
+
+		if [[ ! $QUEUE_LIST ]]
+			then
+			QUEUE_LIST="6"
+		fi
+
+	PRIORITY=$4 # optional. how high you want the tasks to have when submitting.
+		# if no 4th argument present then the default is -15.
+		# if you want to set this then you need to set the 3rd argument as well (even to the default)
 
 			if [[ ! $PRIORITY ]]
 				then
@@ -175,6 +185,9 @@
 			# has to run an servers where the CPU supports AVX
 			# the only ones that don't are the c6100s (prod.q,rnd.q,c6100-4,c6100-8)
 
+	VEP_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vep-102.0.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ensemble/vep:102.0
+
 	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
 		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
 		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
@@ -282,7 +295,7 @@
 
 		MAKE_PROJ_DIR_TREE ()
 		{
-			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI} \
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -448,9 +461,10 @@ done
 				$BAIT_BED \
 				$TARGET_BED \
 				$TITV_BED \
+				$NOVASEQ_REPO \
+				$THREADS \
 				$SAMPLE_SHEET \
-				$SUBMIT_STAMP \
-				$NOVASEQ_REPO
+				$SUBMIT_STAMP
 		}
 
 	for PLATFORM_UNIT in $(awk 1 $SAMPLE_SHEET \
@@ -517,9 +531,10 @@ done
 				"'$CORE_PATH'",\
 				$1,\
 				$2,\
+				$6,\
+				"'$THREADS'",\
 				"'$SAMPLE_SHEET'",\
 				"'$SUBMIT_STAMP'",\
-				$6,\
 				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 	###############################################
@@ -620,6 +635,7 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
+				$THREADS \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -961,6 +977,7 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
+				$THREADS \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1297,6 +1314,7 @@ done
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
+				$THREADS \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1360,6 +1378,8 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
