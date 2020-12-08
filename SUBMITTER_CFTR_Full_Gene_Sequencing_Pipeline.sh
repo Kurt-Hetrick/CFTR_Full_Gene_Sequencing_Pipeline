@@ -188,6 +188,8 @@
 	VEP_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vep-102.0.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ensemble/vep:102.0
 
+	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/cryptsplice-1.simg"
+
 	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
 		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
 		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
@@ -208,6 +210,7 @@
 	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/twistCFTRpanelregion_grch37.bed.gz"
 	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/configManta_CFTR.py.ini"
 	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
+	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
 
 	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 
@@ -1494,6 +1497,27 @@ done
 				$SUBMIT_STAMP
 		}
 
+	# RUN CRYPTSLICE ON VEP ANNOTATED VCF
+
+		RUN_CRYPTSPLICE ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG\
+			-N P.01-CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CRYPTSLICE.log" \
+			-hold_jid O.02-VEP_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.01-CRYPTSPLICE.sh \
+				$CRYPTSPLICE_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$CRYPTSPLICE_DATA \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -1506,6 +1530,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		RUN_SPLICEAI
 		echo sleep 0.1s
 		RUN_VEP_VCF
+		echo sleep 0.1s
+		RUN_CRYPTSPLICE
 		echo sleep 0.1s
 done
 
