@@ -175,6 +175,9 @@
 				# also comes with some version of java 1.8
 				# jar file is /usr/GenomeAnalysisTK.jar
 
+	GATK_3_5_0_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/gatk3-3.5-0.simg"
+		# singularity pull docker://broadinstitute/gatk3:3.7-0
+
 	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/manta-1.6.0.0.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/manta:1.6.0.0
 			# singularity 2 creates a simg file (this is what I used)
@@ -205,21 +208,35 @@
 		# md5 dec069c279625cfb110c2e4c5480e036
 	VERIFY_VCF="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
 	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
-	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR_ANNOTATED.bed"
-	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTRFullGene_BarcodeSNPs.bed"
-	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/twistCFTRpanelregion_grch37.bed.gz"
+	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_ANNOTATED.bed"
+	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTRFullGene_BarcodeSNPs.bed"
+	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/twistCFTRpanelregion_grch37.bed.gz"
 	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/configManta_CFTR.py.ini"
 	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
 	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
+	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 
-	DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
+	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.vcf"
+		# HGVS CDNA SUBMITTED TO VEP
+	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_20Nov2018.vcf"
+		# subset of CFTR2_VCF of those considered to be causal
+	CFTR2_OTHER_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_OTHER_20Nov2018.vcf"
+		# subset of CFTR2_VCF not considered to be causal
+	CFTR2_TABLE="/mnt/research/cf/CFTR/PILOT_ROUND_2/CFTR2variants_ksrannotations_5Nov2018.cdna_sort_exploded_sort.vep.txt"
+
+
+	# currently not using
+
+		DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
 #################################
 
-	# CREATE AN ARRAY FOR EACH SAMPLE IN SAMPLE SHEET FOR INPUT THAT WILL BE USED IN THE PIPELINE
-	# NAME ARRAY ELEMENTS AS VARIABLES.
+	###############################################################################################
+	# CREATE AN ARRAY FOR EACH SAMPLE IN SAMPLE SHEET FOR INPUT THAT WILL BE USED IN THE PIPELINE #
+	# NAME ARRAY ELEMENTS AS VARIABLES ############################################################
+	###############################################################################################
 
 		CREATE_SAMPLE_ARRAY ()
 		{
@@ -295,7 +312,9 @@
 				KNOWN_INDEL_2=${SAMPLE_ARRAY[10]}
 		}
 
-	# PROJECT DIRECTORY TREE CREATOR
+	##################################
+	# PROJECT DIRECTORY TREE CREATOR #
+	##################################
 
 		MAKE_PROJ_DIR_TREE ()
 		{
@@ -316,12 +335,20 @@
 			$CORE_PATH/$PROJECT/LOGS/$SM_TAG
 		}
 
-	SETUP_PROJECT ()
-	{
-		CREATE_SAMPLE_ARRAY
-		MAKE_PROJ_DIR_TREE
-		echo Project started at `date` >| $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt
-	}
+	###################################################
+	# create function to combine project set up steps #
+	###################################################
+
+		SETUP_PROJECT ()
+		{
+			CREATE_SAMPLE_ARRAY
+			MAKE_PROJ_DIR_TREE
+			echo Project started at `date` >| $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt
+		}
+
+#####################
+# do project set up #
+#####################
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -470,6 +497,10 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+	###########
+	# run bwa #
+	###########
 
 	for PLATFORM_UNIT in $(awk 1 $SAMPLE_SHEET \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -666,6 +697,10 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+##############################################
+# run alignment steps after bwa to cram file #
+##############################################
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -1293,9 +1328,9 @@ $SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
 	$SUBMIT_STAMP
 }
 
-########################################
-# Run a bunch of steps for each sample #
-########################################
+#################################################################################
+# Run alignment metrics generation, small variant calling and metric generation #
+#################################################################################
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -1413,6 +1448,35 @@ done
 				$SUBMIT_STAMP
 		}
 
+	##################
+	# REFORMAT MANTA #
+	##################
+
+		REFORMAT_MANTA ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N H.06-A.01-A.01-REFORMAT_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-REFORMAT_MANTA.log" \
+			-hold_jid H.06-A.01-RUN_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06-A.01-A.01-REFORMAT_MANTA.sh \
+				$GATK_3_5_0_CONTAINER \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$CFTR_EXONS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+#############################################
+# RUN STEPS FOR STRUCTURAL VARIANT ANALYSIS #
+#############################################
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -1424,13 +1488,17 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		RUN_MANTA
 		echo sleep 0.1s
+		REFORMAT_MANTA
+		echo sleep 0.1s
 done
 
 #######################################
 ##### CRYPTIC SPLICING ALGORITHMS #####
 #######################################
 
-	# FILTER CFTR FULL VCF TO VCF ONLY CONTAINING VARIANTS.
+	########################################################
+	# FILTER CFTR FULL VCF TO VCF ONLY CONTAINING VARIANTS #
+	########################################################
 
 		VARIANT_ONLY_CFTR_VCF ()
 		{
@@ -1451,8 +1519,10 @@ done
 				$SUBMIT_STAMP
 		}
 
-	# SPLICEAI CAN ONLY BE RUN SERVERS THAT SUPPORT AVX
-	# CURRENTLY THE ONLY SERVERS THAT DON'T ARE THE c6100s (prod.q,rnd.q,c6100-4 and c6100-8)
+	###########################################################################################
+	# SPLICEAI CAN ONLY BE RUN SERVERS THAT SUPPORT AVX #######################################
+	# CURRENTLY THE ONLY SERVERS THAT DON'T ARE THE c6100s (prod.q,rnd.q,c6100-4 and c6100-8) #
+	###########################################################################################
 
 		RUN_SPLICEAI ()
 		{
@@ -1473,7 +1543,9 @@ done
 				$SUBMIT_STAMP
 		}
 
-	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice
+	#################################################################################################
+	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice #
+	#################################################################################################
 
 		RUN_VEP_VCF ()
 		{
@@ -1497,7 +1569,9 @@ done
 				$SUBMIT_STAMP
 		}
 
-	# RUN CRYPTSLICE ON VEP ANNOTATED VCF
+	#######################################
+	# RUN CRYPTSLICE ON VEP ANNOTATED VCF #
+	#######################################
 
 		RUN_CRYPTSPLICE ()
 		{
@@ -1517,6 +1591,10 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+###########################################
+# run steps for cryptic splicing analysis #
+###########################################
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
