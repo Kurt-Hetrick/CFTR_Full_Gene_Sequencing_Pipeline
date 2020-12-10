@@ -1645,6 +1645,29 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#####################################################
+	# REMOVE DBSNP ID FROM VARIANT ONLY CFTR REGION VCF #
+	#####################################################
+
+		REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N O.03-A.01-CFTR2_REMOVE_DBSNP_ID"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-O.03-A.01-CFTR2_REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF.log" \
+			-hold_jid O.03-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.03-A.01-CFTR2_REMOVE_DBSNP_ID.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -1653,6 +1676,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 	do
 		CREATE_SAMPLE_ARRAY
 		DECOMPOSE_NORMALIZE_VARIANT_ONLY_CFTR_VCF
+		echo sleep 0.1s
+		REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF
 		echo sleep 0.1s
 done
 
