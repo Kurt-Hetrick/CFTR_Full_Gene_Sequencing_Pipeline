@@ -193,6 +193,9 @@
 
 	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/cryptsplice-1.simg"
 
+	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/umich/vt:0.5772.ca352e2c.0
+
 	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
 		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
 		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
@@ -216,12 +219,14 @@
 	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 
-	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.vcf"
-		# HGVS CDNA SUBMITTED TO VEP
+	# HGVS CDNA SUBMITTED TO VEP
+	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.DaN.vcf.gz"
+
+	# subset of CFTR2_VCF of those considered to be causal
 	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_20Nov2018.vcf"
-		# subset of CFTR2_VCF of those considered to be causal
+	# subset of CFTR2_VCF not considered to be causal
 	CFTR2_OTHER_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_OTHER_20Nov2018.vcf"
-		# subset of CFTR2_VCF not considered to be causal
+
 	CFTR2_TABLE="/mnt/research/cf/CFTR/PILOT_ROUND_2/CFTR2variants_ksrannotations_5Nov2018.cdna_sort_exploded_sort.vep.txt"
 
 
@@ -1610,6 +1615,44 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		RUN_VEP_VCF
 		echo sleep 0.1s
 		RUN_CRYPTSPLICE
+		echo sleep 0.1s
+done
+
+########################
+##### CFTR2 REPORT #####
+########################
+
+	####################################################################
+	# DECOMPOSE MULTI-ALLELIC VARIANTS IN VARIANT ONLY CFTR REGION VCF #
+	####################################################################
+
+		DECOMPOSE_NORMALIZE_VARIANT_ONLY_CFTR_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N O.03-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DECOMPOSE_NORMALIZE_VARIANT_ONLY_CFTR_VCF.log" \
+			-hold_jid N.01-VARIANT_ONLY_CFTR_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.03-CFTR2_VCF_DECOMPOSE_NORMALIZE.sh \
+				$VT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+for SAMPLE in $(awk 1 $SAMPLE_SHEET \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
+		| sort \
+		| uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+		DECOMPOSE_NORMALIZE_VARIANT_ONLY_CFTR_VCF
 		echo sleep 0.1s
 done
 
