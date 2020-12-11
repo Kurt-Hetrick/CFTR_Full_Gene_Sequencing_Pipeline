@@ -223,7 +223,7 @@
 	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.DaN.vcf.gz"
 
 	# subset of CFTR2_VCF of those considered to be causal
-	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_20Nov2018.vcf"
+	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_19Nov2018.GRCh37.DaN.vcf.gz"
 	# subset of CFTR2_VCF not considered to be causal
 	CFTR2_OTHER_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_OTHER_20Nov2018.vcf"
 
@@ -1692,6 +1692,30 @@ done
 				$SUBMIT_STAMP
 		}
 
+	############################
+	# EXTRACT CAUSAL CFTR2 VCF #
+	############################
+
+		EXTRACT_CAUSAL_CFTR2_VCF ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CAUSAL_CFTR2_VARIANTS.log" \
+			-hold_jid O.03-A.01-A.01-ANNOTATE_VCF_HGVS_CDNA"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$CFTR2_CAUSAL_VCF \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ###################################
 # RUN STEP TO ANNOTATE WITH CFTR2 #
 ###################################
@@ -1708,6 +1732,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF
 		echo sleep 0.1s
 		ANNOTATE_WITH_HGVS_CDNA
+		echo sleep 0.1s
+		EXTRACT_CAUSAL_CFTR2_VCF
 		echo sleep 0.1s
 done
 
