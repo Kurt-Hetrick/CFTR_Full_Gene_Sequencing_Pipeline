@@ -42,7 +42,7 @@ START_VEP_VCF=`date '+%s'` # capture time process starts for wall clock tracking
 	# construct command line
 
 		CMD="singularity exec $VEP_CONTAINER vep" \
-			CMD=$CMD" -i $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONY.vcf" \
+			CMD=$CMD" -i $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONLY.vcf" \
 			CMD=$CMD" -o $CORE_PATH/$PROJECT/$SM_TAG/VEP/$SM_TAG".vep.vcf"" \
 			CMD=$CMD" --fork $THREADS" \
 			CMD=$CMD" --vcf" \

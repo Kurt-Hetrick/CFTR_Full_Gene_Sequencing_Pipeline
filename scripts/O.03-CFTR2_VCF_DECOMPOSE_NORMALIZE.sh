@@ -41,13 +41,13 @@ START_DECOMPOSE=`date '+%s'` # capture time process starts for wall clock tracki
 	# construct command line
 
 		CMD="sed 's/ID=AD,Number=./ID=AD,Number=R/'" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONY.vcf" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONLY.vcf" \
 		CMD=$CMD" | singularity exec $VT_CONTAINER vt" \
 		CMD=$CMD" decompose -s -" \
 		CMD=$CMD" | singularity exec $VT_CONTAINER vt" \
 		CMD=$CMD" normalize" \
 		CMD=$CMD" -r $REF_GENOME -" \
-		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONY.DandN.vcf"" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
 
 	# write command line to file and execute the command line
 

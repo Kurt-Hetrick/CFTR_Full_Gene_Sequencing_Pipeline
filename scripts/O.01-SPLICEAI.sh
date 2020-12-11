@@ -43,7 +43,7 @@ START_SPLICEAI=`date '+%s'` # capture time process starts for wall clock trackin
 	# construct command line
 
 		CMD="singularity exec $SPLICEAI_CONTAINER spliceai" \
-			CMD=$CMD" -I $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONY.vcf" \
+			CMD=$CMD" -I $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONLY.vcf" \
 			CMD=$CMD" -O $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.vcf"" \
 			CMD=$CMD" -R $REF_GENOME" \
 			CMD=$CMD" -A grch37"

@@ -45,7 +45,7 @@ START_REMOVE_CFTR_NON_VARIANTS=`date '+%s'` # capture time process starts for wa
 		CMD=$CMD" SelectVariants" \
 			CMD=$CMD" --reference $REF_GENOME" \
 			CMD=$CMD" --variant $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.CFTR_REGION.vcf" \
-			CMD=$CMD" --output $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONY.vcf" \
+			CMD=$CMD" --output $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONLY.vcf" \
 			CMD=$CMD" --exclude-non-variants"
 
 	# write command line to file and execute the command line

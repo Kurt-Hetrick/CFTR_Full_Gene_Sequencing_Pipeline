@@ -40,17 +40,17 @@ START_REMOVE_ID=`date '+%s'` # capture time process starts for wall clock tracki
 
 	# construct command line
 
-		CMD="(grep ^# $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONY.DandN.vcf" ;" \
-			CMD=$CMD" grep -v ^# $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONY.DandN.vcf"" \
+		CMD="(grep ^# $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf" ;" \
+			CMD=$CMD" grep -v ^# $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
 			CMD=$CMD" | awk '\$5!=\"*\"')" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER bcftools" \
 			CMD=$CMD" annotate" \
 			CMD=$CMD" --remove ID" \
 			CMD=$CMD" -" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER bgzip" \
-		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONY.DandN.CFTR2.vcf.gz" &&" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz" &&" \
 		CMD=$CMD" singularity exec $ALIGNMENT_CONTAINER tabix" \
-		CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONY.DandN.CFTR2.vcf.gz""
+		CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz""
 
 	# write command line to file and execute the command line
 
