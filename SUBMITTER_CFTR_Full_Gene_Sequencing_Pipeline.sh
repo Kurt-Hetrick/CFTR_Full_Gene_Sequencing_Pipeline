@@ -220,7 +220,7 @@
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 
 	# HGVS CDNA SUBMITTED TO VEP
-	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.DaN.vcf.gz"
+	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.DaN.vcf.gz"
 
 	# subset of CFTR2_VCF of those considered to be causal
 	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_20Nov2018.vcf"
@@ -323,7 +323,7 @@
 
 		MAKE_PROJ_DIR_TREE ()
 		{
-			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP} \
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP,CFTR2} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -1656,7 +1656,7 @@ done
 				$QSUB_ARGS \
 				$STANDARD_QUEUE_QSUB_ARG \
 			-N O.03-A.01-CFTR2_REMOVE_DBSNP_ID"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-O.03-A.01-CFTR2_REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF.log" \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CFTR2_REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF.log" \
 			-hold_jid O.03-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/O.03-A.01-CFTR2_REMOVE_DBSNP_ID.sh \
 				$ALIGNMENT_CONTAINER \
@@ -1668,6 +1668,34 @@ done
 				$SUBMIT_STAMP
 		}
 
+	########################################
+	# ANNOTATE VCF ID FIELD WITH HGVS CDNA #
+	########################################
+
+		ANNOTATE_WITH_HGVS_CDNA ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N O.03-A.01-A.01-ANNOTATE_VCF_HGVS_CDNA"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANNOTATE_VCF_HGVS_CDNA.log" \
+			-hold_jid O.03-A.01-CFTR2_REMOVE_DBSNP_ID"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/O.03-A.01-A.01-ANNOTATE_VCF_HGVS_CDNA.sh \
+				$GATK_3_7_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$CFTR2_VCF \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+###################################
+# RUN STEP TO ANNOTATE WITH CFTR2 #
+###################################
+
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
@@ -1678,6 +1706,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		DECOMPOSE_NORMALIZE_VARIANT_ONLY_CFTR_VCF
 		echo sleep 0.1s
 		REMOVE_DBSNP_ID_VARIANT_ONLY_CFTR_VCF
+		echo sleep 0.1s
+		ANNOTATE_WITH_HGVS_CDNA
 		echo sleep 0.1s
 done
 
