@@ -47,10 +47,23 @@ START_EXTRACT_CAUSAL=`date '+%s'` # capture time process starts for wall clock t
 			CMD=$CMD" -n=2" \
 			CMD=$CMD" -w1" \
 			CMD=$CMD" -e'POS>=117908552 & POS<=117908576'" \
-			CMD=$CMD" --output $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.CAUSAL.vcf"" \
 			CMD=$CMD" --output-type v" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz"" \
-			CMD=$CMD" $CFTR2_CAUSAL_VCF"
+			CMD=$CMD" $CFTR2_CAUSAL_VCF" \
+		CMD=$CMD" | grep -v ^#" \
+		CMD=$CMD" | awk '{split(\$10,GT,\":\");" \
+			CMD=$CMD" split(\$3,HGVSCDNA,\":\");" \
+			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\",HGVSCDNA[2] \"\n\" \"$SM_TAG\",HGVSCDNA[2] ;" \
+			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\",HGVSCDNA[2] ;" \
+			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\",HGVSCDNA[2] ;" \
+			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\",HGVSCDNA[2]}'" \
+		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
+			CMD=$CMD" datamash" \
+		CMD=$CMD" -W" \
+			CMD=$CMD" -g 1" \
+			CMD=$CMD" collapse 2" \
+		CMD=$CMD" | sed 's/,/\t/g'" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR2_CAUSAL_VARIANTS.txt"" \
 
 	# write command line to file and execute the command line
 
