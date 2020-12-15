@@ -31,9 +31,10 @@
 	SM_TAG=$4
 	REF_GENOME=$5
 	CFTR2_CAUSAL_VCF=$6
-	SAMPLE_SHEET=$7
+	CFTR2_VEP_TABLE=$7
+	SAMPLE_SHEET=$8
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$8
+	SUBMIT_STAMP=$9
 
 # grab causal cftr2 variants, but ignore poly T and TG tracts.
 
@@ -52,18 +53,36 @@ START_EXTRACT_CAUSAL=`date '+%s'` # capture time process starts for wall clock t
 			CMD=$CMD" $CFTR2_CAUSAL_VCF" \
 		CMD=$CMD" | grep -v ^#" \
 		CMD=$CMD" | awk '{split(\$10,GT,\":\");" \
-			CMD=$CMD" split(\$3,HGVSCDNA,\":\");" \
-			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\",HGVSCDNA[2] \"\n\" \"$SM_TAG\",HGVSCDNA[2] ;" \
-			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\",HGVSCDNA[2] ;" \
-			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\",HGVSCDNA[2] ;" \
-			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\",HGVSCDNA[2]}'" \
+			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 \"\n\" \"$SM_TAG\" , \$3 ;" \
+			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 ;" \
+			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 ;" \
+			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3}'" \
+		CMD=$CMD" | sort -k 2,2" \
+		CMD=$CMD" | join " \
+			CMD=$CMD" -1 2" \
+			CMD=$CMD" -2 1" \
+			CMD=$CMD" -o 1.1,1.2,2.4 " \
+			CMD=$CMD" - " \
+			CMD=$CMD" $CFTR2_VEP_TABLE" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
 			CMD=$CMD" datamash" \
 		CMD=$CMD" -W" \
 			CMD=$CMD" -g 1" \
 			CMD=$CMD" collapse 2" \
-		CMD=$CMD" | sed 's/,/\t/g'" \
-		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR2_CAUSAL_VARIANTS.txt"" \
+			CMD=$CMD" collapse 3" \
+		CMD=$CMD" | awk 'gsub(/,/ , \"\t\" , \$2) " \
+			CMD=$CMD" gsub(/,/ , \";\" , \$3)' " \
+		CMD=$CMD" | awk '{if (\$1!=\"\" && \$2!=\"\" && \$3!=\"\" && \$4!=\"\" && \$5==\"\") " \
+			CMD=$CMD" print \$1,\$2,\$3,\"NONE\",\$4 ;" \
+		CMD=$CMD" else if (\$1!=\"\" && \$2!=\"\" && \$3!=\"\" && \$4==\"\" && \$5==\"\") "
+			CMD=$CMD" print \$1 , \$2 , \"NONE\" , \"NONE\" , \$3 ;" \
+		CMD=$CMD" else print \$0}'" \
+		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
+			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NONE\" , \"NONE\" , \"NA\"}'"
+		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CF-causing_mutation1\" , \"CF-causing_mutation2\" , " \
+			CMD=$CMD" \"CF-causing_mutation3\" , \"CAUSAL_CONSEQUENCE\"} {print \$0}'" \
+		CMD=$CMD" | sed 's/ /\t/g'" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_CAUSING_VARIANTS.txt""
 
 	# write command line to file and execute the command line
 

@@ -227,8 +227,8 @@
 	# subset of CFTR2_VCF not considered to be causal
 	CFTR2_OTHER_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_other_19Nov2018.GRCh37.DaN.vcf.gz"
 
-	CFTR2_TABLE="/mnt/research/cf/CFTR/PILOT_ROUND_2/CFTR2variants_ksrannotations_5Nov2018.cdna_sort_exploded_sort.vep.txt"
-
+	CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.vep.CFTR_ONLY.sort.no_header.txt"
+	# CFTR2_TABLE="/mnt/research/cf/CFTR/PILOT_ROUND_2/CFTR2variants_ksrannotations_5Nov2018.cdna_sort_exploded_sort.vep.txt"
 
 	# currently not using
 
@@ -1712,6 +1712,7 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$CFTR2_CAUSAL_VCF \
+				$CFTR2_VEP_TABLE \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1829,6 +1830,6 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-		$SEND_TO
+# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
+# 	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+# 		$SEND_TO
