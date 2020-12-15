@@ -82,7 +82,8 @@ START_EXTRACT_CAUSAL=`date '+%s'` # capture time process starts for wall clock t
 		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CF-causing_mutation1\" , \"CF-causing_mutation2\" , " \
 			CMD=$CMD" \"CF-causing_mutation3\" , \"CAUSAL_CONSEQUENCE\"} {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
-		# CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_CAUSING_VARIANTS.txt""
+		CMD=$CMD" | sed 's/,/;/g'" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_CAUSING_VARIANTS.txt""
 
 	# write command line to file and execute the command line
 

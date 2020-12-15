@@ -76,6 +76,7 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"OTHER_CFTR2_VARIANTS\" , \"OTHER_CFTR2_GT\" , " \
 			CMD=$CMD" \"OTHER_CFTR2_CONSEQUENCE\"} {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
+		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_OTHER_VARIANTS.txt""
 
 	# write command line to file and execute the command line

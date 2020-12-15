@@ -25,21 +25,19 @@
 # INPUT VARIABLES
 
 	GATK_3_5_0_CONTAINER=$1
-	ALIGNMENT_CONTAINER=$2
-	CORE_PATH=$3
+	CORE_PATH=$2
 
-	PROJECT=$4
-	SM_TAG=$5
-	REF_GENOME=$6
-	CFTR_EXONS=$7
-	SAMPLE_SHEET=$8
+	PROJECT=$3
+	SM_TAG=$4
+	REF_GENOME=$5
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$9
+	SUBMIT_STAMP=$7
 
 ## reformat manta vcf into a tab delimited file
 ## intersect with cftr exons bed file and annotate SV with exon numbers affected
 
-START_FORMAT_MANTA=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_MANTA_VCF_TO_TABLE=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
@@ -105,33 +103,11 @@ START_FORMAT_MANTA=`date '+%s'` # capture time process starts for wall clock tra
 			exit $SCRIPT_STATUS
 		fi
 
-	# create a file with the header
-
-		echo SAMPLE CFTR_SV_TYPE SV_SIZE CFTR_EXONS CFTR_LOCATION \
-			| sed 's/ /\t/g' \
-		>| $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_SHORT.txt"
-
-	# intersect the reformatted manta results with a CFTR exons bed file and append to the above file.
-
-		awk 'BEGIN {OFS="\t"} NR>1 {print $1,$2-1,$3,$4,$5,$31,$13,$32,$33,$7,$8}' \
-			$CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_OUT.txt" \
-			| singularity exec $ALIGNMENT_CONTAINER bedtools \
-				intersect \
-				-wao \
-				-b $CFTR_EXONS \
-				-a - \
-			| singularity exec $ALIGNMENT_CONTAINER datamash \
-				-g 1,2,3,4,5 \
-				collapse 17 \
-			| awk 'BEGIN {OFS="\t"} {print "'$SM_TAG'",$4,$5,$6,$1":"$2+1"-"$3}' \
-			| sed 's/,/;/g' \
-		>> $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_SHORT.txt"
-
-END_FORMAT_MANTA=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+END_MANTA_VCF_TO_TABLE=`date '+%s'` # capture time process stops for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",H.001,FORMAT_MANTA,"$HOSTNAME","$START_FORMAT_MANTA","$END_FORMAT_MANTA \
+	echo $SM_TAG"_"$PROJECT",H.001,MANTA_VCF_TO_TABLE,"$HOSTNAME","$START_MANTA_VCF_TO_TABLE","$MANTA_VCF_TO_TABLE \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

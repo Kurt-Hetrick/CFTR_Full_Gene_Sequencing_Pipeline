@@ -1453,31 +1453,6 @@ done
 				$SUBMIT_STAMP
 		}
 
-	##################
-	# REFORMAT MANTA #
-	##################
-
-		REFORMAT_MANTA ()
-		{
-			echo \
-			qsub \
-				$QSUB_ARGS \
-				$STANDARD_QUEUE_QSUB_ARG \
-			-N H.06-A.01-A.01-REFORMAT_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-REFORMAT_MANTA.log" \
-			-hold_jid H.06-A.01-RUN_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.06-A.01-A.01-REFORMAT_MANTA.sh \
-				$GATK_3_5_0_CONTAINER \
-				$ALIGNMENT_CONTAINER \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$REF_GENOME \
-				$CFTR_EXONS \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
-
 #############################################
 # RUN STEPS FOR STRUCTURAL VARIANT ANALYSIS #
 #############################################
@@ -1492,8 +1467,6 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		CONFIGURE_MANTA
 		echo sleep 0.1s
 		RUN_MANTA
-		echo sleep 0.1s
-		REFORMAT_MANTA
 		echo sleep 0.1s
 done
 
@@ -1742,6 +1715,53 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#################################################
+	# REFORMAT MANTA VCF INTO A TAB DELIMITED TABLE #
+	#################################################
+
+		MANTA_VCF_TO_TABLE ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N H.06-A.01-A.01-MANTA_VCF_TO_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-MANTA_VCF_TO_TABLE.log" \
+			-hold_jid H.06-A.01-RUN_MANTA"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06-A.01-A.01-MANTA_VCF_TO_TABLE.sh \
+				$GATK_3_5_0_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	###############################################
+	# REFORMAT MANTA TABLE INTO CFTR2 REPORT STUB #
+	###############################################
+
+		MANTA_REPORT ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N H.06-A.01-A.01-A.01-MANTA_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-MANTA_REPORT.log" \
+			-hold_jid H.06-A.01-A.01-MANTA_VCF_TO_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.06-A.01-A.01-A.01-MANTA_REPORT.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$CFTR_EXONS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ###################################
 # RUN STEP TO ANNOTATE WITH CFTR2 #
 ###################################
@@ -1762,6 +1782,10 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		EXTRACT_CAUSAL_CFTR2_VCF
 		echo sleep 0.1s
 		EXTRACT_OTHER_CFTR2_VCF
+		echo sleep 0.1s
+		MANTA_VCF_TO_TABLE
+		echo sleep 0.1s
+		MANTA_REPORT
 		echo sleep 0.1s
 done
 
