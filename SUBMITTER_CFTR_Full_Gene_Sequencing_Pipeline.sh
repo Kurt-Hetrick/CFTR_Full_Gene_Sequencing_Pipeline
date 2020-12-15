@@ -1737,6 +1737,7 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$CFTR2_OTHER_VCF \
+				$CFTR2_VEP_TABLE \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
