@@ -415,3 +415,7 @@
 	# this is black magic that I don't know if it really helps. was having problems with getting the emails to send so I put a little delay in here.
 
 		sleep 2s
+
+	# add timestamp when project finished processing.
+
+		echo Project started at `date` >> $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt

@@ -1306,33 +1306,6 @@ done
 				$SUBMIT_STAMP
 		}
 
-##################################
-# QC REPORT PREP FOR EACH SAMPLE #
-##################################
-
-QC_REPORT_PREP ()
-{
-echo \
-qsub \
-	$QSUB_ARGS \
-	$STANDARD_QUEUE_QSUB_ARG \
--N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
-	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
--hold_jid \
-M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
-M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
-H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
-	$ALIGNMENT_CONTAINER \
-	$CORE_PATH \
-	$PROJECT \
-	$SM_TAG \
-	$SAMPLE_SHEET \
-	$SUBMIT_STAMP
-}
-
 #################################################################################
 # Run alignment metrics generation, small variant calling and metric generation #
 #################################################################################
@@ -1391,8 +1364,6 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		VCF_METRICS_CFTR_TARGET
 		echo sleep 0.1s
 		EXTRACT_BARCODE_SNPS
-		echo sleep 0.1s
-		QC_REPORT_PREP
 		echo sleep 0.1s
 done
 
@@ -1783,9 +1754,39 @@ done
 				$SUBMIT_STAMP
 		}
 
-###################################
-# RUN STEP TO ANNOTATE WITH CFTR2 #
-###################################
+##################################
+# QC REPORT PREP FOR EACH SAMPLE #
+##################################
+
+QC_REPORT_PREP ()
+{
+echo \
+qsub \
+	$QSUB_ARGS \
+	$STANDARD_QUEUE_QSUB_ARG \
+-N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
+	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
+-hold_jid \
+M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
+M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
+H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+O.01-SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,\
+P.01-CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT,\
+P.02-CREATE_CFTR2_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
+	$ALIGNMENT_CONTAINER \
+	$CORE_PATH \
+	$PROJECT \
+	$SM_TAG \
+	$SAMPLE_SHEET \
+	$SUBMIT_STAMP
+}
+
+################################################
+# RUN STEPS TO CREATE CFTR2 AND QC REPORT PREP #
+################################################
 
 for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
@@ -1809,6 +1810,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		MANTA_REPORT
 		echo sleep 0.1s
 		CREATE_CFTR2_REPORT
+		echo sleep 0.1s
+		QC_REPORT_PREP
 		echo sleep 0.1s
 done
 
@@ -1878,6 +1881,6 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-# 	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-# 		$SEND_TO
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
+	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+		$SEND_TO
