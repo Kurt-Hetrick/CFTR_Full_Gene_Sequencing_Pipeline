@@ -65,7 +65,10 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 			CMD=$CMD" -o 1.1,1.2,2.4,1.3,1.4" \
 			CMD=$CMD" /dev/stdin" \
 			CMD=$CMD" $CFTR2_VEP_TABLE" \
-		CMD=$CMD" | sed 's/,/;/g'" \
+		# if vep has multiple func. conseq. for a variant, it comma delimits
+		# changing it to pipe delimited...which eventually gets changed to semi-colon
+		# in the final cftr2 report.
+		CMD=$CMD" | sed 's/,/|/g'" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
 			CMD=$CMD" datamash" \
 		CMD=$CMD" -W" \

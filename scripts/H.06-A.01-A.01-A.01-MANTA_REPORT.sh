@@ -56,7 +56,7 @@ START_MANTA_REPORT=`date '+%s'` # capture time process starts for wall clock tra
 			CMD=$CMD" collapse 12" \
 		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
 		CMD=$CMD" {print \"$SM_TAG\" , \$4 , \$5 , \$7 , \$1\":\"\$2+1\"-\"\$3 , \$6}'" \
-		CMD=$CMD" | sed 's/,/;/g'" \
+		CMD=$CMD" | sed 's/,/|/g'" \
 		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
 			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\" , \"NA\" , \"NA\"}'"
 		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CFTR_SV_TYPE\" , \"SV_SIZE\" , " \

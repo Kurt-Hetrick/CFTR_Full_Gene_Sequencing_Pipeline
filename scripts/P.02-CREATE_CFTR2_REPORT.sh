@@ -24,13 +24,14 @@
 
 # INPUT VARIABLES
 
-	CORE_PATH=$1
+	ALIGNMENT_CONTAINER=$1
+	CORE_PATH=$2
 
-	PROJECT=$2
-	SM_TAG=$3
-	SAMPLE_SHEET=$4
+	PROJECT=$3
+	SM_TAG=$4
+	SAMPLE_SHEET=$5
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$5
+	SUBMIT_STAMP=$6
 
 # grab causal cftr2 variants, but ignore poly T and TG tracts.
 
@@ -46,7 +47,15 @@ START_CREATE_CFTR2_REPORT=`date '+%s'` # capture time process starts for wall cl
 			CMD=$CMD" -j 1" \
 			CMD=$CMD" /dev/stdin" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_REPORT.txt"" \
-		CMD=$CMD" | sed 's/ /,/g'" \
+		CMD=$CMD" | sed 's/ /\t/g'" \
+		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER datamash" \
+			CMD=$CMD" transpose" \
+		CMD=$CMD" | sed 's/\t/,/g'" \
+		# this is separate out the OTHER variants into their own columns
+		CMD=$CMD" | sed 's/;/,/g'" \
+		# this is to change the delimter for variants that have multiple consequences
+		# from pipe to semicolon
+		CMD=$CMD" | sed 's/|/;/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".CFTR2_REPORT.csv"" \
 
 	# write command line to file and execute the command line

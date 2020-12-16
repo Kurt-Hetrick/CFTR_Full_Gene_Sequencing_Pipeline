@@ -1747,6 +1747,7 @@ done
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CREATE_CFTR2_REPORT.log" \
 			-hold_jid O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,O.03-A.01-A.01-A.02-EXTRACT_OTHER_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,H.06-A.01-A.01-A.01-MANTA_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/P.02-CREATE_CFTR2_REPORT.sh \
+				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
@@ -1881,6 +1882,6 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-		$SEND_TO
+# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
+# 	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+# 		$SEND_TO
