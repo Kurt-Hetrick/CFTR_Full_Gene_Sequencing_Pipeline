@@ -1690,9 +1690,9 @@ done
 				$SUBMIT_STAMP
 		}
 
-	############################
-	# EXTRACT CAUSAL CFTR2 VCF #
-	############################
+	###########################
+	# EXTRACT OTHER CFTR2 VCF #
+	###########################
 
 		EXTRACT_OTHER_CFTR2_VCF ()
 		{
@@ -1762,6 +1762,27 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#################################################################
+	# MERGE THE CAUSAL, NON-CAUSAL, AND MANTA REPORTS INTO ONE FILE #
+	#################################################################
+
+		CREATE_CFTR2_REPORT ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N P.02-CREATE_CFTR2_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CREATE_CFTR2_REPORT.log" \
+			-hold_jid O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,O.03-A.01-A.01-A.02-EXTRACT_OTHER_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,H.06-A.01-A.01-A.01-MANTA_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.02-CREATE_CFTR2_REPORT.sh \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ###################################
 # RUN STEP TO ANNOTATE WITH CFTR2 #
 ###################################
@@ -1786,6 +1807,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		MANTA_VCF_TO_TABLE
 		echo sleep 0.1s
 		MANTA_REPORT
+		echo sleep 0.1s
+		CREATE_CFTR2_REPORT
 		echo sleep 0.1s
 done
 
