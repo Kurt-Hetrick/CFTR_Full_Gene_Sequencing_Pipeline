@@ -52,35 +52,52 @@ START_EXTRACT_CAUSAL=`date '+%s'` # capture time process starts for wall clock t
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz"" \
 			CMD=$CMD" $CFTR2_CAUSAL_VCF" \
 		CMD=$CMD" | grep -v ^#" \
-		CMD=$CMD" | awk '{split(\$10,GT,\":\");" \
-			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 \"\n\" \"$SM_TAG\" , \$3 ;" \
-			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 ;" \
-			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 ;" \
-			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3}'" \
+		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} "
+			CMD=$CMD" {split(\$10,GT,\":\");" \
+			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 , \$2 \"\n\" \"$SM_TAG\" , \$3 , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3 , \$2}'" \
 		CMD=$CMD" | sort -k 2,2" \
-		CMD=$CMD" | join " \
+		CMD=$CMD" | join" \
 			CMD=$CMD" -1 2" \
 			CMD=$CMD" -2 1" \
-			CMD=$CMD" -o 1.1,1.2,2.4 " \
-			CMD=$CMD" /dev/stdin " \
+			CMD=$CMD" -o 1.1,1.2,2.4,1.3" \
+			CMD=$CMD" /dev/stdin" \
 			CMD=$CMD" $CFTR2_VEP_TABLE" \
+		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
 			CMD=$CMD" datamash" \
 		CMD=$CMD" -W" \
 			CMD=$CMD" -g 1" \
 			CMD=$CMD" collapse 2" \
 			CMD=$CMD" collapse 3" \
-		CMD=$CMD" | awk 'gsub(/,/ , \"\t\" , \$2) " \
-			CMD=$CMD" gsub(/,/ , \";\" , \$3)' " \
-		CMD=$CMD" | awk '{if (\$1!=\"\" && \$2!=\"\" && \$3!=\"\" && \$4!=\"\" && \$5==\"\") " \
-			CMD=$CMD" print \$1,\$2,\$3,\"NONE\",\$4 ;" \
-		CMD=$CMD" else if (\$1!=\"\" && \$2!=\"\" && \$3!=\"\" && \$4==\"\" && \$5==\"\") "
-			CMD=$CMD" print \$1 , \$2 , \"NONE\" , \"NONE\" , \$3 ;" \
+			CMD=$CMD" collapse 4" \
+		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
+		CMD=$CMD" gsub(/,/ , \"\t\" , \$2) " \
+			CMD=$CMD" gsub(/,/ , \"\t\" , \$3) " \
+			CMD=$CMD" gsub(/,/ , \"\t\" , \$4)' " \
+		# 3 alleles present
+		CMD=$CMD" | awk '{if (\$5!=\"\" && \$6!=\"\" && \$7!=\"\" && \$8!=\"\") " \
+			CMD=$CMD" print \$1 , \$2 , \$5 , \$8 , \$3 , \$6 , \$9 , \$4 , \$7 , \$10 ;" \
+		# 2 alleles present
+		CMD=$CMD" else if (\$5!=\"\" && \$6!=\"\" && \$7!=\"\" && \$8==\"\") "
+			CMD=$CMD" print \$1 , \$2 , \$4 , \$6 , \$3 , \$5 , \$7 , \"NONE\" , \"NA\" , \"NA\" ;" \
+		# 1 allele present
+		CMD=$CMD" else if (\$5==\"\" && \$6==\"\" && \$7==\"\" && \$8==\"\") "
+			CMD=$CMD" print \$1 , \$2 , \$3 , \$4 , \"NONE\" , \"NA\" , \"NA\" , \"NONE\" , \"NA\" , \"NA\" ;" \
+		# more than 3 alleles present...it will shift the report, but at least it will print.
 		CMD=$CMD" else print \$0}'" \
+		# if there are no alleles present print a dummy record with a header.
+		# otherwise, print the record with a header.
 		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
-			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NONE\" , \"NONE\" , \"NA\"}'"
-		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CF-causing_mutation1\" , \"CF-causing_mutation2\" , " \
-			CMD=$CMD" \"CF-causing_mutation3\" , \"CAUSAL_CONSEQUENCE\"} {print \$0}'" \
+			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\" , \"NONE\" , \"NA\" , \"NA\" , " \
+			CMD=$CMD" \"NONE\" , \"NA\" , \"NA\"}'"
+		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CF-causing_mutation1\" , \"CF-causing_consequence1\" , " \
+			CMD=$CMD" \"CF-causing_position1\" , \"CF-causing_mutation2\" , \"CF-causing_consequence2\" , " \
+			CMD=$CMD" \"CF-causing_position2\" , \"CF-causing_mutation3\" , \"CF-causing_consequence3\" , " \
+			CMD=$CMD" \"CF-causing_position3\"} " \
+			CMD=$CMD" {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
 		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_CAUSING_VARIANTS.txt""

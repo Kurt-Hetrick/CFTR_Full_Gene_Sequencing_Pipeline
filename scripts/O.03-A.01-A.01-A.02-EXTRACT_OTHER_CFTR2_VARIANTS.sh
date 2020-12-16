@@ -52,18 +52,20 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz"" \
 			CMD=$CMD" $CFTR2_OTHER_VCF" \
 		CMD=$CMD" | grep -v ^#" \
-		CMD=$CMD" | awk '{split(\$10,GT,\":\");" \
-			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 , \"var_hom\";" \
-			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 , \"het\" ;" \
-			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 , \"het\" ;" \
-			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3 , \"het\" }'" \
+		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
+		CMD=$CMD" {split(\$10,GT,\":\");" \
+			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 , \"var_hom\" , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 , \"het\" , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 , \"het\" , \$2 ;" \
+			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3 , \"het\" , \$2}'" \
 		CMD=$CMD" | sort -k 2,2" \
 		CMD=$CMD" | join " \
 			CMD=$CMD" -1 2" \
 			CMD=$CMD" -2 1" \
-			CMD=$CMD" -o 1.1,1.2,1.3,2.4 " \
-			CMD=$CMD" /dev/stdin " \
+			CMD=$CMD" -o 1.1,1.2,2.4,1.3,1.4" \
+			CMD=$CMD" /dev/stdin" \
 			CMD=$CMD" $CFTR2_VEP_TABLE" \
+		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
 			CMD=$CMD" datamash" \
 		CMD=$CMD" -W" \
@@ -71,10 +73,11 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 			CMD=$CMD" collapse 2" \
 			CMD=$CMD" collapse 3" \
 			CMD=$CMD" collapse 4" \
+			CMD=$CMD" collapse 5" \
 		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
-			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\"}'"
-		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"OTHER_CFTR2_VARIANTS\" , \"OTHER_CFTR2_GT\" , " \
-			CMD=$CMD" \"OTHER_CFTR2_CONSEQUENCE\"} {print \$0}'" \
+			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\" , \"NA\"}'"
+		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"OTHER_CFTR2_VARIANTS\" , \"OTHER_CFTR2_CONSEQUENCE\" , " \
+			CMD=$CMD" \"OTHER_CFTR2_GT\" , \"OTHER_CFTR2_LOCATION\"} {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
 		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_OTHER_VARIANTS.txt""
