@@ -33,9 +33,10 @@
 	DBSNP=$6
 	TARGET_BED=$7
 		TARGET_BED_NAME=$(basename $TARGET_BED .bed)
-	SAMPLE_SHEET=$8
+	THREADS=$8
+	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$9
+	SUBMIT_STAMP=${10}
 
 START_VCF_METRICS=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
@@ -49,7 +50,7 @@ START_VCF_METRICS=`date '+%s'` # capture time process starts for wall clock trac
 			CMD=$CMD" --SEQUENCE_DICTIONARY $REF_DICT" \
 			CMD=$CMD" --OUTPUT $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/VCF_METRICS/$SM_TAG.CFTR_REGION" \
 			CMD=$CMD" --TARGET_INTERVALS $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME"-picard.bed""
-			CMD=$CMD" --THREAD_COUNT 6"
+			CMD=$CMD" --THREAD_COUNT $THREADS"
 
 	# write command line to file and execute the command line
 

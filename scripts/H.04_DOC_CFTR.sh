@@ -39,7 +39,7 @@
 
 ### --Depth of Coverage On Target WITH PAD--
 
-START_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_DOC_CFTR=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
@@ -81,11 +81,11 @@ START_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock track
 			exit $SCRIPT_STATUS
 		fi
 
-END_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+END_DOC_CFTR=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",H.001,DOC_TARGET,"$HOSTNAME","$START_DOC_TARGET","$END_DOC_TARGET \
+	echo $SM_TAG"_"$PROJECT",H.001,DOC_CFTR,"$HOSTNAME","$START_DOC_CFTR","$END_DOC_CFTR \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 ##### MOVE AND RENAME OUTPUTS
@@ -109,7 +109,7 @@ END_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock trackin
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_cumulative_coverage_proportions" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_cumulative_coverage_proportions.csv"
 
-	# SUMMARY COVERAGE STATISTICS FOR EACH GENE WHERE PADDED TARGET BED FILE OVERLAPS GENE LIST
+	# SUMMARY COVERAGE STATISTICS FOR EACH GENE WHERE PADDED CFTR BED FILE OVERLAPS GENE LIST
 
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_gene_summary" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_gene_summary.csv"
@@ -119,7 +119,7 @@ END_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock trackin
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_interval_statistics" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_interval_statistics.csv"
 
-	# SUMMARY STATISTICS FOR EACH INTERVAL IN PADDED TARGET BED FILE.
+	# SUMMARY STATISTICS FOR EACH INTERVAL IN PADDED CFTR BED FILE.
 
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_interval_summary" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_interval_summary.csv"
@@ -129,7 +129,7 @@ END_DOC_TARGET=`date '+%s'` # capture time process starts for wall clock trackin
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_statistics" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_statistics.csv"
 
-	# SAMPLE COVERAGE SUMMARY STATISTICS FOR SAMPLE IN PADDED TARGET BED FILE.
+	# SAMPLE COVERAGE SUMMARY STATISTICS FOR SAMPLE IN PADDED CFTR BED FILE.
 
 		mv -v $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_summary" \
 		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_CFTR.sample_summary.csv"

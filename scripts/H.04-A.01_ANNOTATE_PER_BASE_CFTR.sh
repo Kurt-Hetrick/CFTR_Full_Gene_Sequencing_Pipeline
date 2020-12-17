@@ -30,14 +30,13 @@
 
 	PROJECT=$3
 	SM_TAG=$4
-	TARGET_BED=$5
-		TARGET_BED_NAME=$(basename $TARGET_BED .bed)
-	CFTR_BED=$6
+	CFTR_BED=$5
 
 START_PER_BASE=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 # convert the per base report in DEPTH_OF_COVERAGE/CODING_PADDED into a bed file with the depth
-# intersect with the annotated coding padded bed file
+# intersect with the annotated CFTR region file.
+# CFTR_BED file is the cftr target region annotated with upstream, utr, exon, intron and downstream
 
 	awk 'BEGIN {FS=","; OFS="\t"} NR>1 \
 		{split($1,BASE,":"); print BASE[1],BASE[2]-1,BASE[2],$2}' \

@@ -31,14 +31,14 @@
 	SM_TAG=$4
 	REF_GENOME=$5
 	DBSNP=$6
-	BAIT_BED=$7
-		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	TARGET_BED=$7
+		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 	SAMPLE_SHEET=$8
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$9
 
 # Start running Many Picard sequencing metrics for the QC report
-# Using bait bed file here because target can be anything and ti/tv is not related to the capture
+# Using target bed file here as that is the cftr target region.
 
 START_COLLECT_MULTIPLE_METRICS=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
@@ -51,7 +51,7 @@ START_COLLECT_MULTIPLE_METRICS=`date '+%s'` # capture time process starts for wa
 			CMD=$CMD" OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG" \
 			CMD=$CMD" REFERENCE_SEQUENCE=$REF_GENOME" \
 			CMD=$CMD" DB_SNP=$DBSNP" \
-			CMD=$CMD" INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$BAIT_BED_NAME"-picard.bed"" \
+			CMD=$CMD" INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME"-picard.bed"" \
 			CMD=$CMD" PROGRAM=CollectGcBiasMetrics" \
 			CMD=$CMD" PROGRAM=CollectSequencingArtifactMetrics" \
 			CMD=$CMD" PROGRAM=CollectQualityYieldMetrics"
@@ -88,10 +88,10 @@ END_COLLECT_MULTIPLE_METRICS=`date '+%s'` # capture time process starts for wall
 	# Move and rename bait bais metrics/summary files to the reports directory and add a txt extension
 
 		mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bait_bias_detail_metrics" \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/METRICS/$SM_TAG".bait_bias_detail_metrics.txt"
+		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/TARGET_BIAS/METRICS/$SM_TAG".bait_bias_detail_metrics.txt"
 
 		mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bait_bias_summary_metrics" \
-		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt"
+		$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/TARGET_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt"
 
 	# Move and rename pre adapter metrics/summary files to the reports directory and add a txt extension
 

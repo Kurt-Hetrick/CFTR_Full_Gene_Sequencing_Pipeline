@@ -41,7 +41,6 @@
 
 # Run Collect HS metrics which generates hybridization metrics for the qc report
 ## Also generates a per target interval coverage summary
-## TiTv bed is used here as the target as it is static and it is a direct subset of the final bait bed file
 
 START_COLLECT_HS_METRICS=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 

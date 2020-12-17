@@ -44,10 +44,6 @@
 
 		GVCF_PAD="250"
 
-	# CFTR TARGET REGION, THIS IS BASED OF THE FILE OF INTERVALS I RECEIVED FROM MELIS
-
-		CFTR_TARGET_REGION="7:117109053-117314054"
-
 	## This will always put the current working directory in front of any directory for PATH
 	## added /bin for RHEL6
 
@@ -324,7 +320,7 @@
 		MAKE_PROJ_DIR_TREE ()
 		{
 			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP,CFTR2} \
-			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
+			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
@@ -514,7 +510,6 @@ done
 			| uniq );
 		do
 			CREATE_PLATFORM_UNIT_ARRAY
-			mkdir -p $CORE_PATH/$PROJECT/LOGS/$SM_TAG
 			RUN_BWA
 			echo sleep 0.1s
 	done
@@ -577,11 +572,11 @@ done
 				"'$SUBMIT_STAMP'",\
 				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
-	###############################################
-	# fix common formatting problems in bed files #
-	# merge bait to target for gvcf creation, pad #
-	# create picard style interval files ##########
-	###############################################
+	###########################################################################################
+	# fix common formatting problems in bed files #############################################
+	# pad the target region with gvcf pad and add to titv (barcode regions) for gvcf bed file #
+	# create picard style interval files ######################################################
+	###########################################################################################
 
 		FIX_BED_FILES ()
 		{
@@ -732,12 +727,11 @@ done
 ##### I WILL COMMENT ON WHICH IS WHICH #################################################
 ########################################################################################
 
-	################################################################################
-	# COLLECT MULTIPLE METRICS  ####################################################
-	# again used bait bed file here instead of target b/c target could be anything #
-	# ti/tv bed is unrelated to the capture really #################################
-	# uses the CRAM file as the input ##############################################
-	################################################################################
+	###########################################################
+	# COLLECT MULTIPLE METRICS  ###############################
+	# USE THE TARGET BED FILE WHICH IS THE CFTR TARGET REGION #
+	# uses the CRAM file as the input #########################
+	###########################################################
 
 		COLLECT_MULTIPLE_METRICS ()
 		{
@@ -755,7 +749,7 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$DBSNP \
-				$BAIT_BED \
+				$TARGET_BED \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -788,12 +782,10 @@ done
 				$SUBMIT_STAMP
 		}
 
-	#################################################################################################
-	# CREATE VCF FOR VERIFYBAMID METRICS ############################################################
-	# USE THE BAIT BED FILE #########################################################################
-	# THE TARGET BED COULD BE MODIFIED TO BE TOO SMALL TO BE USEFUL HERE ############################
-	# TI/TV BED FILE HAS TOO MUCH UNCERTAINTY SINCE IT DOES NOT HAE ANYTHING TO DO WITH THE CAPTURE #
-	#################################################################################################
+	######################################
+	# CREATE VCF FOR VERIFYBAMID METRICS #
+	# USE THE BAIT BED FILE ##############
+	######################################
 
 		SELECT_VERIFYBAMID_VCF ()
 		{
@@ -839,13 +831,14 @@ done
 				$SUBMIT_STAMP
 		}
 
-	##############################################################################
-	# CREATE DEPTH OF COVERAGE FOR TARGET BED PADDED WITH THE INPUT FROM THE GUI #
-	# uses a gatk 3.7 container ##################################################
-	# input is the BAM file #################################################################################
-	# Generally this with all RefSeq Select CDS exons + missing OMIM unless it becomes targeted, e.g a zoom #
-	# uses the BAM file as the input ########################################################################
-	#########################################################################################################
+	#####################################################################################
+	# CREATE DEPTH OF COVERAGE for CFTR TARGET REGION ###################################
+	# bed file is CFTR TARGET REGION THAT IS ANNOTATED WITH INTRON, UPSTREAM, EXON, ETC #
+	# so it is NOT using the sample sheet target bed file as an input ###################
+	# BUT THE ANNOTATED BED FILE IS BASED ON THE TARGET BED FILE IN THE SAMPLE SHEET ####
+	# uses a gatk 3.7 container #########################################################
+	# input is the BAM file #############################################################
+	#####################################################################################
 
 		DOC_CFTR ()
 		{
@@ -886,7 +879,6 @@ done
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$TARGET_BED \
 				$CFTR_BED
 		}
 
@@ -1230,7 +1222,7 @@ done
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$CFTR_TARGET_REGION \
+				$TARGET_BED \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1278,6 +1270,7 @@ done
 				$REF_DICT \
 				$DBSNP \
 				$TARGET_BED \
+				$THREADS \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}

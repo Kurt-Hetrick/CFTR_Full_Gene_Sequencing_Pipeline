@@ -30,7 +30,8 @@
 
 	PROJECT=$3
 	SM_TAG=$4
-	CFTR_TARGET_REGION=$5
+	TARGET_BED=$5
+		TARGET_BED_NAME=$(basename $TARGET_BED .bed)
 	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$7
@@ -45,7 +46,7 @@ START_EXTRACT_CFTR_TARGET_REGION=`date '+%s'` # capture time process starts for 
 		CMD="singularity exec $ALIGNMENT_CONTAINER tabix" \
 			CMD=$CMD" -h" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/VCF/$SM_TAG.vcf.gz" \
-			CMD=$CMD" $CFTR_TARGET_REGION" \
+			CMD=$CMD" -R $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME".bed"" \
 			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.CFTR_REGION.vcf"
 
 	# write command line to file and execute the command line
