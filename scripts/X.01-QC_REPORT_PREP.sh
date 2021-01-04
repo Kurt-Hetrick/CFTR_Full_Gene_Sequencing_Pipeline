@@ -140,20 +140,39 @@
 ##### GENDER CHECK FROM ANEUPLOIDY CHECK ########
 #################################################
 ##### THIS IS THE HEADER ########################
-##### X_AVG_DP,X_NORM_DP,Y_AVG_DP,Y_NORM_DP #####
+##### SEX,X_HET_COUNT,Y_COUNT ###################
 #################################################
 
-# this is a placeholder for attempting to do this from the barcode snps.
+# the number of heterozygous chrX SNPs
+# and the number of high quality (Pass + qual>100) chr Y SNPs for each sample.
 
-	# awk 'BEGIN {OFS="\t"} $2=="X"&&$3=="whole" {print "X",$6,$7} $2=="Y"&&$3=="whole" {print "Y",$6,$7}' \
-	# $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/ANEUPLOIDY_CHECK/$SM_TAG".chrom_count_report.txt" \
-	# 	| paste - - \
-	# 	| awk 'BEGIN {OFS="\t"} END {if ($1=="X"&&$4=="Y") print $2,$3,$5,$6 ; \
-	# 		else if ($1=="X"&&$4=="") print $2,$3,"NaN","NaN" ; \
-	# 		else if ($1=="Y"&&$4=="") print "NaN","NaN",$5,$6 ; \
-	# 		else print "NaN","NaN","NaN","NaN"}' \
-	# 	| singularity exec $ALIGNMENT_CONTAINER datamash transpose \
-	# >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	# Male= no heterozygous chrX SNPs + 5 high quality chrY SNPs
+	# Female= at least 1 heterozygous chrX SNP + 0 high quality chrY SNPs
+	## It's very rare, but occasionally we get a female without any heterozygous chrX SNPs.
+	## As long as they don't have any high quality chrY calls we say that the sex is consistent
+	## this is coded as undetermined, but the lab would look at the vcf in more detail.
+
+	if [[ ! -f $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.BARCODE.vcf ]]
+		then
+			echo -e NA'\t'NaN'\t'NaN \
+			| singularity exec $ALIGNMENT_CONTAINER datamash \
+				transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			grep -v "^#" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.BARCODE.vcf \
+				| awk '{X_HET_COUNT+=($1=="X" && $10 ~ /^0\/1/)} \
+				{Y_VAR_COUNT+=($1=="Y" && $6>100 && $7=="PASS" && $10 ~ /^.\/./)} \
+					END {if (X_HET_COUNT=="0" && Y_VAR_COUNT>=5) print "MALE",X_HET_COUNT,Y_VAR_COUNT; \
+					else if (X_HET_COUNT>=1 && Y_VAR_COUNT=="0") print "FEMALE",X_HET_COUNT,Y_VAR_COUNT; \
+					else print "UNDETERMINED",X_HET_COUNT,Y_VAR_COUNT}' \
+				| sed 's/ /\t/g' \
+				| singularity exec $ALIGNMENT_CONTAINER datamash \
+					transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 #####################################################################################################################################
 ##### VERIFY BAM ID #################################################################################################################

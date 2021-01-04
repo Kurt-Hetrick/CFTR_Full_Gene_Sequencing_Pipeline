@@ -60,6 +60,9 @@
 			"HYB_WELL",\
 			"HYB_ROW",\
 			"HYB_COLUMN",\
+			"SEX",\
+			"X_HET_COUNT",\
+			"Y_COUNT",\
 			"VERIFYBAM_FREEMIX_PCT",\
 			"VERIFYBAM_#SNPS",\
 			"VERIFYBAM_FREELK1",\
