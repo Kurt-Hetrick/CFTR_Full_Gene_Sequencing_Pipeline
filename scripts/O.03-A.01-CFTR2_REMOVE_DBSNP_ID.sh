@@ -50,6 +50,8 @@ START_REMOVE_ID=`date '+%s'` # capture time process starts for wall clock tracki
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER bgzip" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz" &&" \
 		CMD=$CMD" singularity exec $ALIGNMENT_CONTAINER tabix" \
+		CMD=$CMD" -p vcf" \
+		CMD=$CMD" -f" \
 		CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz""
 
 	# write command line to file and execute the command line

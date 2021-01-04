@@ -49,6 +49,7 @@ START_PER_BASE_TABIX=`date '+%s'` # capture time process starts for wall clock t
 			CMD=$CMD" -s 1" \
 			CMD=$CMD" -b 2" \
 			CMD=$CMD" -e 2" \
+			CMD=$CMD" -f" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/DEPTH_OF_COVERAGE/CFTR/$SM_TAG"_"CFTR.PER.BASE.REPORT.txt.gz"
 
 	# write command line to file and execute the command line
