@@ -33,26 +33,20 @@
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$6
 
-# grab causal cftr2 variants, but ignore poly T and TG tracts.
+# concatenate the manta report with the cftr2/ddl classification report
 
 START_CREATE_CFTR2_REPORT=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
-		CMD="join" \
-			CMD=$CMD" -j 1" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_CAUSING_VARIANTS.txt""
-			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_OTHER_VARIANTS.txt""
-		CMD=$CMD" | join" \
-			CMD=$CMD" -j 1" \
-			CMD=$CMD" /dev/stdin" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_REPORT.txt"" \
-		CMD=$CMD" | sed 's/ /\t/g'" \
-		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER datamash" \
-			CMD=$CMD" transpose" \
+		CMD="(echo \#STRUCTURAL_VARIANTS ;" \
+			CMD=$CMD" cat" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_REPORT.txt" ;" \
+			CMD=$CMD" echo ;" \
+			CMD=$CMD" echo \#SMALL_VARIANTS ;" \
+			CMD=$CMD" cat" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_VARIANTS.txt" )" \
 		CMD=$CMD" | sed 's/\t/,/g'" \
-		# this is separate out the OTHER variants into their own columns
-		CMD=$CMD" | sed 's/;/,/g'" \
 		# this is to change the delimter for variants that have multiple consequences
 		# from pipe to semicolon
 		CMD=$CMD" | sed 's/|/;/g'" \

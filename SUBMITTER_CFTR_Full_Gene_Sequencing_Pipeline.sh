@@ -216,15 +216,12 @@
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 
 	# HGVS CDNA SUBMITTED TO VEP
-	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.DaN.vcf.gz"
+	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.DaN.vcf.gz"
 
-	# subset of CFTR2_VCF of those considered to be causal
-	CFTR2_CAUSAL_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_causal_19Nov2018.GRCh37.DaN.vcf.gz"
-	# subset of CFTR2_VCF not considered to be causal
-	CFTR2_OTHER_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_other_19Nov2018.GRCh37.DaN.vcf.gz"
+	CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.CFTR_ONLY.sort.no_header.txt"
 
-	CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2variants_ksrannotations_5Nov2018_all_19Nov2018.GRCh37.vep.CFTR_ONLY.sort.no_header.txt"
-	# CFTR2_TABLE="/mnt/research/cf/CFTR/PILOT_ROUND_2/CFTR2variants_ksrannotations_5Nov2018.cdna_sort_exploded_sort.vep.txt"
+	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
+	CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
 
 	# currently not using
 
@@ -1633,48 +1630,24 @@ done
 	# EXTRACT CAUSAL CFTR2 VCF #
 	############################
 
-		EXTRACT_CAUSAL_CFTR2_VCF ()
+		EXTRACT_CFTR2_VCF ()
 		{
 			echo \
 			qsub \
 				$QSUB_ARGS \
 				$STANDARD_QUEUE_QSUB_ARG \
-			-N O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CAUSAL_CFTR2_VARIANTS.log" \
+			-N O.03-A.01-A.01-A.01-EXTRACT_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CFTR2_VARIANTS.log" \
 			-hold_jid O.03-A.01-A.01-ANNOTATE_VCF_HGVS_CDNA"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS.sh \
+			$SCRIPT_DIR/O.03-A.01-A.01-A.01-EXTRACT_CFTR2_VARIANTS.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$CFTR2_CAUSAL_VCF \
+				$CFTR2_VCF \
 				$CFTR2_VEP_TABLE \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
-
-	###########################
-	# EXTRACT OTHER CFTR2 VCF #
-	###########################
-
-		EXTRACT_OTHER_CFTR2_VCF ()
-		{
-			echo \
-			qsub \
-				$QSUB_ARGS \
-				$STANDARD_QUEUE_QSUB_ARG \
-			-N O.03-A.01-A.01-A.02-EXTRACT_OTHER_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_OTHER_CFTR2_VARIANTS.log" \
-			-hold_jid O.03-A.01-A.01-ANNOTATE_VCF_HGVS_CDNA"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/O.03-A.01-A.01-A.02-EXTRACT_OTHER_CFTR2_VARIANTS.sh \
-				$ALIGNMENT_CONTAINER \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$REF_GENOME \
-				$CFTR2_OTHER_VCF \
-				$CFTR2_VEP_TABLE \
+				$CFTR2_RAW_TABLE \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1738,7 +1711,7 @@ done
 				$STANDARD_QUEUE_QSUB_ARG \
 			-N P.02-CREATE_CFTR2_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-CREATE_CFTR2_REPORT.log" \
-			-hold_jid O.03-A.01-A.01-A.01-EXTRACT_CAUSAL_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,O.03-A.01-A.01-A.02-EXTRACT_OTHER_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,H.06-A.01-A.01-A.01-MANTA_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid O.03-A.01-A.01-A.01-EXTRACT_CFTR2_VARIANTS"_"$SGE_SM_TAG"_"$PROJECT,H.06-A.01-A.01-A.01-MANTA_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/P.02-CREATE_CFTR2_REPORT.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
@@ -1795,9 +1768,7 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		ANNOTATE_WITH_HGVS_CDNA
 		echo sleep 0.1s
-		EXTRACT_CAUSAL_CFTR2_VCF
-		echo sleep 0.1s
-		EXTRACT_OTHER_CFTR2_VCF
+		EXTRACT_CFTR2_VCF
 		echo sleep 0.1s
 		MANTA_VCF_TO_TABLE
 		echo sleep 0.1s

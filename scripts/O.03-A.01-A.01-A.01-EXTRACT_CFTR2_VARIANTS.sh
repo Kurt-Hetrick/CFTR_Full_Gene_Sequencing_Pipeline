@@ -30,15 +30,16 @@
 	PROJECT=$3
 	SM_TAG=$4
 	REF_GENOME=$5
-	CFTR2_OTHER_VCF=$6
+	CFTR2_VCF=$6
 	CFTR2_VEP_TABLE=$7
-	SAMPLE_SHEET=$8
+	CFTR2_RAW_TABLE=$8
+	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$9
+	SUBMIT_STAMP=${10}
 
-# grab causal cftr2 variants, but ignore poly T and TG tracts.
+# extract cftr2 variants, but ignore poly T and TG tracts
 
-START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_EXTRACT_CFTR2=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
@@ -47,43 +48,51 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 		CMD=$CMD" isec" \
 			CMD=$CMD" -n=2" \
 			CMD=$CMD" -w1" \
-			CMD=$CMD" -e'POS>=117908552 & POS<=117908576'" \
+			CMD=$CMD" -e'POS>=117188660 & POS<=117188689'" \
 			CMD=$CMD" --output-type v" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.CFTR2.vcf.gz"" \
-			CMD=$CMD" $CFTR2_OTHER_VCF" \
+			CMD=$CMD" $CFTR2_VCF" \
 		CMD=$CMD" | grep -v ^#" \
-		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
-		CMD=$CMD" {split(\$10,GT,\":\");" \
-			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 , \"var_hom\" , \$2 ;" \
-			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 , \"het\" , \$2 ;" \
-			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 , \"het\" , \$2 ;" \
-			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3 , \"het\" , \$2}'" \
+		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} "
+			CMD=$CMD" {split(\$10,GT,\":\");" \
+			CMD=$CMD" if (GT[1]==\"1/1\") print \"$SM_TAG\" , \$3 , \"VAR_HOM\" , \$2 , \$7 ;" \
+			CMD=$CMD" else if (GT[1]==\"0/1\") print \"$SM_TAG\" , \$3 , \"HET\" , \$2 , \$7 ;" \
+			CMD=$CMD" else if (GT[1]==\"./1\") print \"$SM_TAG\" , \$3 , \"HET\" , \$2 , \$7 ;" \
+			CMD=$CMD" else if (GT[1]==\"1/.\") print \"$SM_TAG\" , \$3 , \"HET\" , \$2 , \$7 }'" \
 		CMD=$CMD" | sort -k 2,2" \
-		CMD=$CMD" | join " \
+		# join with the vep table
+		CMD=$CMD" | join" \
 			CMD=$CMD" -1 2" \
 			CMD=$CMD" -2 1" \
-			CMD=$CMD" -o 1.1,1.2,2.4,1.3,1.4" \
+			CMD=$CMD" -o 1.1,1.2,2.4,1.3,1.4,1.5" \
 			CMD=$CMD" /dev/stdin" \
 			CMD=$CMD" $CFTR2_VEP_TABLE" \
+		CMD=$CMD" | sed 's/ /\t/g'" \
 		# if vep has multiple func. conseq. for a variant, it comma delimits
 		# changing it to pipe delimited...which eventually gets changed to semi-colon
 		# in the final cftr2 report.
 		CMD=$CMD" | sed 's/,/|/g'" \
-		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER" \
-			CMD=$CMD" datamash" \
-		CMD=$CMD" -W" \
-			CMD=$CMD" -g 1" \
-			CMD=$CMD" collapse 2" \
-			CMD=$CMD" collapse 3" \
-			CMD=$CMD" collapse 4" \
-			CMD=$CMD" collapse 5" \
-		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
-			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\" , \"NA\"}'"
-		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"OTHER_CFTR2_VARIANTS\" , \"OTHER_CFTR2_CONSEQUENCE\" , " \
-			CMD=$CMD" \"OTHER_CFTR2_GT\" , \"OTHER_CFTR2_LOCATION\"} {print \$0}'" \
+		# join with the raw cftr2 table
+		CMD=$CMD" | join" \
+			CMD=$CMD" -t $'\t'" \
+			CMD=$CMD" -1 2" \
+			CMD=$CMD" -2 1" \
+			CMD=$CMD" -o 1.1,1.2,2.9,1.3,1.4,1.5,1.6" \
+			CMD=$CMD" /dev/stdin" \
+			CMD=$CMD" $CFTR2_RAW_TABLE" \
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR2_VARIANTS.txt" && " \
+		CMD=$CMD" if [ -s $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR2_VARIANTS.txt" ] ; " \
+			CMD=$CMD" then " \
+				CMD=$CMD" cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR2_VARIANTS.txt" ; " \
+			CMD=$CMD" else " \
+				CMD=$CMD" printf \"$SM_TAG NONE NA NA NA NA NA\" ; " \
+			CMD=$CMD" fi"
+		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"HGVS_CDNA\" , \"CFTR2_DDL_CLASSIFICATION\" , " \
+			CMD=$CMD" \"CONSEQUENCE\" , \"GENOTYPE\" , \"POSITION\" , \"FILTER\"} " \
+			CMD=$CMD" {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
 		CMD=$CMD" | sed 's/,/;/g'" \
-		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_OTHER_VARIANTS.txt""
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_VARIANTS.txt""
 
 	# write command line to file and execute the command line
 
@@ -105,11 +114,11 @@ START_EXTRACT_OTHER=`date '+%s'` # capture time process starts for wall clock tr
 			exit $SCRIPT_STATUS
 		fi
 
-END_EXTRACT_OTHER=`date '+%s'` # capture time process ends for wall clock tracking purposes.
+END_EXTRACT_CFTR2=`date '+%s'` # capture time process ends for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $PROJECT",N.001,EXTRACT_OTHER,"$HOSTNAME","$START_EXTRACT_OTHER","$END_EXTRACT_OTHER \
+	echo $PROJECT",N.001,EXTRACT_CFTR2,"$HOSTNAME","$START_EXTRACT_CFTR2","$END_EXTRACT_CFTR2 \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

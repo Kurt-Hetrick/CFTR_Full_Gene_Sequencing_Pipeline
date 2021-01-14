@@ -44,27 +44,33 @@ START_MANTA_REPORT=`date '+%s'` # capture time process starts for wall clock tra
 
 		CMD="awk 'BEGIN {OFS=\"\t\"} " \
 			CMD=$CMD" NR>1" \
-			CMD=$CMD"  {print \$1 , \$2-1 , \$3 , \$4 , \$5 , \$10}'" \
-		CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_OUT.txt"" \
+			CMD=$CMD"  {print \$1 , \$2-1 , \$3 , \$4 , \$5 , \$11 , \$10}'" \
+		CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_TABLE.txt"" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER bedtools" \
 			CMD=$CMD" intersect" \
 				CMD=$CMD" -wao" \
 				CMD=$CMD" -b $CFTR_EXONS" \
 				CMD=$CMD" -a -" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER datamash" \
-			CMD=$CMD" -g 1,2,3,4,5,6" \
-			CMD=$CMD" collapse 12" \
+			CMD=$CMD" -g 1,2,3,4,5,6,7" \
+			CMD=$CMD" collapse 13" \
 		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
-		CMD=$CMD" {print \"$SM_TAG\" , \$4 , \$5 , \$7 , \$1\":\"\$2+1\"-\"\$3 , \$6}'" \
+		CMD=$CMD" {print \"$SM_TAG\" , \$4 , \$5 , \$8 , \$1\":\"\$2+1\"-\"\$3 , \$6 , \$7}'" \
 		CMD=$CMD" | sed 's/,/|/g'" \
-		CMD=$CMD" | awk 'END {if (NR==1) print \$0 ; " \
-			CMD=$CMD" else print \"$SM_TAG\" , \"NONE\" , \"NA\" , \"NA\" , \"NA\" , \"NA\"}'"
+		CMD=$CMD" >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".MANTA_REPORT.txt" && " \
+		CMD=$CMD" if [ -s $CORE_PATH/$PROJECT/TEMP/$SM_TAG".MANTA_REPORT.txt" ] ; " \
+			CMD=$CMD" then " \
+				CMD=$CMD" cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG".MANTA_REPORT.txt" ; " \
+			CMD=$CMD" else " \
+				CMD=$CMD" printf \"$SM_TAG NONE NA NA NA NA NA\" ; " \
+			CMD=$CMD" fi"
+		CMD=$CMD" | awk '{if (\$6==1) print \$1 , \$2 , \$3 , \$4 , \$5 , \"HET\" , \$7 ; " \
+			CMD=$CMD" else if (\$6==0) print \$1 , \$2 , \$3 , \$4 , \$5 , \"HOM\" , \$7 ; " \
+			CMD=$CMD" else print \$0}'" \
 		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"CFTR_SV_TYPE\" , \"SV_SIZE\" , " \
-			CMD=$CMD" \"CFTR_EXONS\" , \"CFTR_LOCATION\" , \"MANTA_FILTER\"} {print \$0}'" \
+			CMD=$CMD" \"CFTR_EXONS\" , \"CFTR_LOCATION\" , \"GENOTYPE\" , \"MANTA_FILTER\"} {print \$0}'" \
 		CMD=$CMD" | sed 's/ /\t/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_REPORT.txt""
-
-#CMD=$CMD" >> $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_SHORT.txt""
 
 	# write command line to file and execute the command line
 
