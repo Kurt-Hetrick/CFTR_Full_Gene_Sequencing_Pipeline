@@ -24,33 +24,29 @@
 
 # INPUT VARIABLES
 
-	VEP_CONTAINER=$1
+	SPLICEAI_CONTAINER=$1
 	CORE_PATH=$2
 
 	PROJECT=$3
 	SM_TAG=$4
-	VEP_REF_CACHE=$5
-	THREADS=$6
-	SAMPLE_SHEET=$7
+	REF_GENOME=$5
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$8
+	SUBMIT_STAMP=$7
 
-## ANNOTATE VARIANT ONLY CFTR REGION VCF WITH GENE/TRANSCRIPT WITH VEP
+## RUN SPLICEAI
+## SPLICEAI CAN ONLY BE RUN ON SERVERS WHOSE CPU SUPPORTS AVX
+## CURRENTLY THE ONLY SERVERS THAT DON'T ARE THE c6100s (prod.q,rnd.q,c6100-4,c610-8)
 
-START_VEP_VCF=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_SPLICEAI=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
-		CMD="singularity exec $VEP_CONTAINER vep" \
-			CMD=$CMD" -i $CORE_PATH/$PROJECT/TEMP/$SM_TAG.CFTR_REGION_VARIANT_ONLY.vcf" \
-			CMD=$CMD" -o $CORE_PATH/$PROJECT/$SM_TAG/VEP/$SM_TAG".vep.vcf"" \
-			CMD=$CMD" --fork $THREADS" \
-			CMD=$CMD" --vcf" \
-			CMD=$CMD" --cache" \
-			CMD=$CMD" --offline" \
-			CMD=$CMD" --refseq" \
-			CMD=$CMD" --force_overwrite" \
-			CMD=$CMD" --dir $VEP_REF_CACHE"
+		CMD="singularity exec $SPLICEAI_CONTAINER spliceai" \
+			CMD=$CMD" -I $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
+			CMD=$CMD" -O $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.vcf"" \
+			CMD=$CMD" -R $REF_GENOME" \
+			CMD=$CMD" -A grch37"
 
 	# write command line to file and execute the command line
 
@@ -72,11 +68,11 @@ START_VEP_VCF=`date '+%s'` # capture time process starts for wall clock tracking
 			exit $SCRIPT_STATUS
 		fi
 
-END_VEP_VCF=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+END_SPLICEAI=`date '+%s'` # capture time process stops for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",O.001,VEP_VCF,"$HOSTNAME","$START_VEP_VCF","$END_VEP_VCF \
+	echo $SM_TAG"_"$PROJECT",O.001,SPLICEAI,"$HOSTNAME","$START_SPLICEAI","$END_SPLICEAI \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

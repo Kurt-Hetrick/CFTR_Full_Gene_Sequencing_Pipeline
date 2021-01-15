@@ -534,26 +534,27 @@
 ##### see how many libraries are in the samples ###################################
 ##### should probably do this from the cram header, but meh, some other time. #####
 ##### this is to be tested against at the end. ####################################
+##### taking this out for now #####################################################
 ###################################################################################
 
-	MULTIPLE_LIBRARY=`grep -v "^#" $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
-		| sed '/^$/d' \
-		| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
-		| paste - - \
-		| awk 'END {print NR}'`
+	# MULTIPLE_LIBRARY=`grep -v "^#" $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
+	# 	| sed '/^$/d' \
+	# 	| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
+	# 	| paste - - \
+	# 	| awk 'END {print NR}'`
 
-		# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 
-			if [ "$MULTIPLE_LIBRARY" -ne 1 ]
-			 then
-				grep -v ^# $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
-					| sed '/^$/d' \
-					| awk 'NR>1 {print $1 "\t" $2}' \
-					| sort \
-					| uniq \
-					| singularity exec $ALIGNMENT_CONTAINER datamash -g 1 collapse 2 \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
-			fi
+	# 		if [ "$MULTIPLE_LIBRARY" -ne 1 ]
+	# 		 then
+	# 			grep -v ^# $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
+	# 				| sed '/^$/d' \
+	# 				| awk 'NR>1 {print $1 "\t" $2}' \
+	# 				| sort \
+	# 				| uniq \
+	# 				| singularity exec $ALIGNMENT_CONTAINER datamash -g 1 collapse 2 \
+	# 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
+	# 		fi
 
 	# tranpose from rows to list
 
@@ -576,9 +577,10 @@
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
 				exit $SCRIPT_STATUS
-			elif [ "$MULTIPLE_LIBRARY" -eq 1 ]
-			 then
-				exit 0
+			# elif [ "$MULTIPLE_LIBRARY" -eq 1 ]
+			#  then
+			# 	exit 0
 			else
-				exit 3
+				# exit 3
+				exit 0
 			fi
