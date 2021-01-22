@@ -223,6 +223,9 @@
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
 	CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
 
+	# VEP FILES
+	VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
+
 	# currently not using
 
 		DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
@@ -1554,6 +1557,33 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#################################################################################################
+	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice #
+	#################################################################################################
+
+		RUN_VEP_TXT ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG\
+				$VEP_HTSLIB_QSUB_ARG \
+				$VEP_PERL5LIB_QSUB_ARG \
+			-N P.04-VEP_TXGT"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VEP_TXT.log" \
+			-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.04-VEP_TXT.sh \
+				$VEP_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$VEP_REF_CACHE \
+				$VEP_FASTA \
+				$THREADS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ###########################################
 # run steps for cryptic splicing analysis #
 ###########################################
@@ -1574,6 +1604,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		RUN_VEP_VCF
 		echo sleep 0.1s
 		RUN_CRYPTSPLICE
+		echo sleep 0.1s
+		RUN_VEP_TXT
 		echo sleep 0.1s
 done
 
