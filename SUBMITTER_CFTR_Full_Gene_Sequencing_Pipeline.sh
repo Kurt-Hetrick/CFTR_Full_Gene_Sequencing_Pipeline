@@ -192,6 +192,8 @@
 	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/umich/vt:0.5772.ca352e2c.0
 
+	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-dev.simg"
+
 	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
 		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
 		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
@@ -216,22 +218,64 @@
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 
 	# HGVS CDNA SUBMITTED TO VEP
-	CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.DaN.vcf.gz"
+		CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.DaN.vcf.gz"
 
-	CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.CFTR_ONLY.sort.no_header.txt"
+		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.CFTR_ONLY.sort.no_header.txt"
 
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
-	CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
+		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
 
 	# VEP FILES or FOLDERS
-	VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
-	VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
-	VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
-	VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
-	VEP_SPLICEAI_CUTOFF="0.5"
-	VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
-	VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
-	VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz"
+		VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
+		VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
+		VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
+		VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
+		VEP_SPLICEAI_CUTOFF="0.5"
+		VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
+		VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
+		VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz"
+
+	# ANNOVAR PARAMETERS AND INPUTS
+		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR.final.csv"
+		ANNOVAR_REF_BUILD="hg19"
+
+		ANNOVAR_INFO_FIELD_KEYS="VariantType," \
+			ANNOVAR_INFO_FIELD_KEYS=$ANNOVAR_INFO_FIELD_KEYS"DP" \
+
+		ANNOVAR_HEADER_MAPPINGS="af=gnomad211_exome_AF," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_popmax=gnomad211_exome_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_male=gnomad211_exome_AF_male," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_female=gnomad211_exome_AF_female," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_raw=gnomad211_exome_AF_raw," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_afr=gnomad211_exome_AF_afr," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_sas=gnomad211_exome_AF_sas," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_amr=gnomad211_exome_AF_amr," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_eas=gnomad211_exome_AF_eas," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_nfe=gnomad211_exome_AF_nfe," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_fin=gnomad211_exome_AF_fin," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_asj=gnomad211_exome_AF_asj," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_oth=gnomad211_exome_AF_oth," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSmed_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSo_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGScer_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSAF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF=gnomad211_genome_AF," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_popmax=gnomad211_genome_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_male=gnomad211_genome_AF_male," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_female=gnomad211_genome_AF_female," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_raw=gnomad211_genome_AF_raw," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_afr=gnomad211_genome_AF_afr," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_sas=gnomad211_genome_AF_sas," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_amr=gnomad211_genome_AF_amr," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_eas=gnomad211_genome_AF_eas," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_nfe=gnomad211_genome_AF_nfe," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_fin=gnomad211_genome_AF_fin," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_asj=gnomad211_genome_AF_asj," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_oth=gnomad211_genome_AF_oth," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSpmed_AF_popmax," 	\
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSro_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSncer_AF_popmax," 	\
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"controls_AF_popmax=gnomad211_genome_controls_AF_popmax"
 
 	# currently not using
 
@@ -326,7 +370,7 @@
 
 		MAKE_PROJ_DIR_TREE ()
 		{
-			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP,CFTR2} \
+			mkdir -p $CORE_PATH/$PROJECT/$SM_TAG/{CRAM,HC_CRAM,VCF,GVCF,ANALYSIS,MANTA,CRYPTSPLICE,SPLICEAI,VEP,CFTR2,ANNOVAR} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,RG_HEADER,QUALITY_YIELD,ERROR_SUMMARY,VCF_METRICS,QC_REPORT_PREP} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 			$CORE_PATH/$PROJECT/$SM_TAG/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -1598,6 +1642,33 @@ done
 				$SUBMIT_STAMP
 		}
 
+	##################################
+	# RUN ANNOVAR ON CFTR REGION VCF #
+	##################################
+
+		RUN_ANNOVAR ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N P.05-RUN_ANNOVAR"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-RUN_ANNOVAR.log" \
+			-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.05-RUN_ANNOVAR.sh \
+				$ANNOVAR_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$ANNOVAR_DATABASE_FILE \
+				$ANNOVAR_REF_BUILD \
+				$ANNOVAR_INFO_FIELD_KEYS \
+				$ANNOVAR_HEADER_MAPPINGS \
+				$THREADS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
 ###########################################
 # run steps for cryptic splicing analysis #
 ###########################################
@@ -1619,7 +1690,9 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		RUN_CRYPTSPLICE
 		echo sleep 0.1s
-		RUN_VEP_TXT
+		# RUN_VEP_TXT
+		# echo sleep 0.1s
+		RUN_ANNOVAR
 		echo sleep 0.1s
 done
 
