@@ -223,8 +223,15 @@
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
 	CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
 
-	# VEP FILES
+	# VEP FILES or FOLDERS
 	VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
+	VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
+	VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
+	VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
+	VEP_SPLICEAI_CUTOFF="0.5"
+	VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
+	VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
+	VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz"
 
 	# currently not using
 
@@ -1579,6 +1586,13 @@ done
 				$SM_TAG \
 				$VEP_REF_CACHE \
 				$VEP_FASTA \
+				$VEP_MAXENTSCAN_DIR \
+				$VEP_SPLICEAI_SNV \
+				$VEP_SPLICEAI_INDEL \
+				$VEP_SPLICEAI_CUTOFF \
+				$VEP_CONDEL_CONFIG_DIR \
+				$VEP_DBSCSNV \
+				$VEP_DBNSFP \
 				$THREADS \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP

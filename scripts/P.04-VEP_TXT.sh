@@ -31,10 +31,17 @@
 	SM_TAG=$4
 	VEP_REF_CACHE=$5
 	VEP_FASTA=$6
-	THREADS=$7
-	SAMPLE_SHEET=$8
+	VEP_MAXENTSCAN_DIR=$7
+	VEP_SPLICEAI_SNV=$8
+	VEP_SPLICEAI_INDEL=$9
+	VEP_SPLICEAI_CUTOFF=${10}
+	VEP_CONDEL_CONFIG_DIR=${11}
+	VEP_DBSCSNV=${12}
+	VEP_DBNSFP=${13}
+	THREADS=${14}
+	SAMPLE_SHEET=${15}
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$9
+	SUBMIT_STAMP=${16}
 
 ## ANNOTATE VARIANT ONLY CFTR REGION VCF WITH GENE/TRANSCRIPT WITH VEP
 
@@ -58,10 +65,11 @@ START_VEP_VCF=`date '+%s'` # capture time process starts for wall clock tracking
 			CMD=$CMD" --assembly GRCh37" \
 			CMD=$CMD" --check_existing" \
 			CMD=$CMD" --fasta $VEP_FASTA" \
-			CMD=$CMD" --plugin MaxEntScan,/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan,SWA,NCSS,verbose" \
-			CMD=$CMD" --plugin SpliceAI,snv=/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz,indel=/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz,cutoff=0.5" \
-			CMD=$CMD" --plugin Condel,/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config,b" \
-			CMD=$CMD" --plugin dbscSNV,/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz" \
+			CMD=$CMD" --plugin MaxEntScan,$VEP_MAXENTSCAN_DIR,SWA,NCSS,verbose" \
+			CMD=$CMD" --plugin SpliceAI,snv=$VEP_SPLICEAI_SNV,indel=$VEP_SPLICEAI_INDEL,cutoff=$VEP_SPLICEAI_CUTOFF" \
+			CMD=$CMD" --plugin Condel,$VEP_CONDEL_CONFIG_DIR,b" \
+			CMD=$CMD" --plugin dbscSNV,$VEP_DBSCSNV" \
+			CMD=$CMD" --plugin dbNSFP,$VEP_DBNSFP,ALL" \
 			CMD=$CMD" &&" \
 			CMD=$CMD" grep -v ^## $CORE_PATH/$PROJECT/$SM_TAG/VEP/$SM_TAG".vep.txt"" \
 			CMD=$CMD" | awk 'BEGIN {print \"##$SM_TAG\"} \$5~\"Feature\"||\$5~\"-\"||\$5~/^NM/ {print \$0}' " \
