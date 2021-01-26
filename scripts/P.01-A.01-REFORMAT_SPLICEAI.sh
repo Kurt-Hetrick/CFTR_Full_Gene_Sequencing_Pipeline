@@ -24,40 +24,31 @@
 
 # INPUT VARIABLES
 
-	ANNOVAR_CONTAINER=$1
+	ALIGNMENT_CONTAINER=$1
 	CORE_PATH=$2
 
 	PROJECT=$3
 	SM_TAG=$4
-	ANNOVAR_DATABASE_FILE=$5
-	ANNOVAR_REF_BUILD=$6
-	ANNOVAR_INFO_FIELD_KEYS=$7
-		ANNOVAR_INFO_FIELD_KEYS_SPACED=$(echo $ANNOVAR_INFO_FIELD_KEYS | sed 's/,/ /g')
-	ANNOVAR_HEADER_MAPPINGS=$8
-		ANNOVAR_HEADER_MAPPINGS_SPACED=$(echo $ANNOVAR_HEADER_MAPPINGS | sed 's/,/ /g')
-	ANNOVAR_VCF_COLUMNS=$9
-		ANNOVAR_VCF_COLUMNS_SPACED=$(echo $ANNOVAR_VCF_COLUMNS | sed 's/,/ /g')
-	THREADS=${10}
-	SAMPLE_SHEET=${11}
+	SAMPLE_SHEET=$5
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=${12}
+	SUBMIT_STAMP=$6
 
-## ANNOTATE VARIANT ONLY CFTR REGION VCF WITH GENE/TRANSCRIPT WITH ANNOVAR
+# extract score from spliceai vcf output
 
-START_ANNOVAR=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_REFORMAT_SPLICEAI=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
-		CMD="singularity exec $ANNOVAR_CONTAINER python" \
-			CMD=$CMD" /annovar_wrangler/annovar_wrangler.py" \
-			CMD=$CMD" --vcf_input_path $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
-			CMD=$CMD" --output_directory_path $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/" \
-			CMD=$CMD" --databases_file_path $ANNOVAR_DATABASE_FILE" \
-			CMD=$CMD" --ref_build_version $ANNOVAR_REF_BUILD" \
-			CMD=$CMD" --threads $THREADS" \
-			CMD=$CMD" --info_field_keys $ANNOVAR_INFO_FIELD_KEYS_SPACED" \
-			CMD=$CMD" --header_mappings $ANNOVAR_HEADER_MAPPINGS_SPACED" \
-			CMD=$CMD" --preserve_vcf_columns $ANNOVAR_VCF_COLUMNS_SPACED" \
+		CMD="singularity exec $ALIGNMENT_CONTAINER bcftools" \
+			CMD=$CMD" query" \
+			CMD=$CMD" -f '%CHROM %POS %REF %ALT %SpliceAI\n'" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.vcf"" \
+		CMD=$CMD" | awk 'BEGIN {print \"CHR\" , \"POS\" , \"REF\" , \"ALT\" , \"ALLELE\" , \"SYMBOL\" ," \
+			CMD=$CMD" \"DS_AG\" , \"DS_AL\" , \"DS_DG\" , \"DS_DL\" , " \
+			CMD=$CMD" \"DP_AG\" , \"DP_AL\" , \"DP_DG\" , \"DP_DL\"} " \
+			CMD=$CMD" {print \$0}'"
+		CMD=$CMD" | sed 's/|/\t/g ; s/ /\t/g'" \
+			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.table.txt""
 
 	# write command line to file and execute the command line
 
@@ -79,11 +70,11 @@ START_ANNOVAR=`date '+%s'` # capture time process starts for wall clock tracking
 			exit $SCRIPT_STATUS
 		fi
 
-END_ANNOVAR=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+END_REFORMAT_SPLICEAI=`date '+%s'` # capture time process stops for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",O.001,ANNOVAR,"$HOSTNAME","$START_ANNOVAR","$END_ANNOVAR \
+	echo $SM_TAG"_"$PROJECT",O.001,REFORMAT_SPLICEAI,"$HOSTNAME","$START_REFORMAT_SPLICEAI","$END_REFORMAT_SPLICEAI \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

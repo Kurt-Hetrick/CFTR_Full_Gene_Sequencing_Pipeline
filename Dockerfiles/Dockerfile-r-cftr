@@ -1,0 +1,7 @@
+FROM r-base:3.4.4
+
+SHELL ["/bin/bash", "-c"]
+
+RUN R -e "install.packages('tidyr',dependencies=TRUE, repos='http://cran.rstudio.com/')"
+
+RUN R -e "install.packages('dplyr',dependencies=TRUE, repos='http://cran.rstudio.com/')"

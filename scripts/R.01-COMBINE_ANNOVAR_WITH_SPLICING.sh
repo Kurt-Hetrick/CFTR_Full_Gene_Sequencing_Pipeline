@@ -24,40 +24,27 @@
 
 # INPUT VARIABLES
 
-	ANNOVAR_CONTAINER=$1
+	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER=$1
 	CORE_PATH=$2
 
 	PROJECT=$3
 	SM_TAG=$4
-	ANNOVAR_DATABASE_FILE=$5
-	ANNOVAR_REF_BUILD=$6
-	ANNOVAR_INFO_FIELD_KEYS=$7
-		ANNOVAR_INFO_FIELD_KEYS_SPACED=$(echo $ANNOVAR_INFO_FIELD_KEYS | sed 's/,/ /g')
-	ANNOVAR_HEADER_MAPPINGS=$8
-		ANNOVAR_HEADER_MAPPINGS_SPACED=$(echo $ANNOVAR_HEADER_MAPPINGS | sed 's/,/ /g')
-	ANNOVAR_VCF_COLUMNS=$9
-		ANNOVAR_VCF_COLUMNS_SPACED=$(echo $ANNOVAR_VCF_COLUMNS | sed 's/,/ /g')
-	THREADS=${10}
-	SAMPLE_SHEET=${11}
+	COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT=$5
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=${12}
+	SUBMIT_STAMP=$7
 
-## ANNOTATE VARIANT ONLY CFTR REGION VCF WITH GENE/TRANSCRIPT WITH ANNOVAR
+# extract score from spliceai vcf output
 
-START_ANNOVAR=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_COMBINE_ANNOTATIONS=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
 	# construct command line
 
-		CMD="singularity exec $ANNOVAR_CONTAINER python" \
-			CMD=$CMD" /annovar_wrangler/annovar_wrangler.py" \
-			CMD=$CMD" --vcf_input_path $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
-			CMD=$CMD" --output_directory_path $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/" \
-			CMD=$CMD" --databases_file_path $ANNOVAR_DATABASE_FILE" \
-			CMD=$CMD" --ref_build_version $ANNOVAR_REF_BUILD" \
-			CMD=$CMD" --threads $THREADS" \
-			CMD=$CMD" --info_field_keys $ANNOVAR_INFO_FIELD_KEYS_SPACED" \
-			CMD=$CMD" --header_mappings $ANNOVAR_HEADER_MAPPINGS_SPACED" \
-			CMD=$CMD" --preserve_vcf_columns $ANNOVAR_VCF_COLUMNS_SPACED" \
+		CMD="singularity exec $COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER Rscript" \
+			CMD=$CMD" $COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_cryptsplice_prioritized_predictions_reformatted.txt"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.table.txt"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar""
 
 	# write command line to file and execute the command line
 
@@ -79,11 +66,11 @@ START_ANNOVAR=`date '+%s'` # capture time process starts for wall clock tracking
 			exit $SCRIPT_STATUS
 		fi
 
-END_ANNOVAR=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+END_COMBINE_ANNOTATIONS=`date '+%s'` # capture time process stops for wall clock tracking purposes.
 
 # write out timing metrics to file
 
-	echo $SM_TAG"_"$PROJECT",O.001,ANNOVAR,"$HOSTNAME","$START_ANNOVAR","$END_ANNOVAR \
+	echo $SM_TAG"_"$PROJECT",O.001,COMBINE_ANNOTATIONS,"$HOSTNAME","$START_COMBINE_ANNOTATIONS","$END_COMBINE_ANNOTATIONS \
 	>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 # exit with the signal from the program

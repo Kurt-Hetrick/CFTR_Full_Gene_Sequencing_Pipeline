@@ -188,18 +188,17 @@
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ensemble/vep:102.0
 
 	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/cryptsplice-1.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/cryptsplice:1
 
 	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/umich/vt:0.5772.ca352e2c.0
 
 	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-dev.simg"
+		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/annovarwrangler:dev
 
-	# PIPELINE PROGRAMS TO BE IMPLEMENTED (MAYBE/MAYBE NOT...THESE ARE FOR ANNOVAR)
-		JAVA_1_6="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/jre1.6.0_25/bin"
-		SAMTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/samtools-0.1.18"
-		VCFTOOLS_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/vcftools_0.1.12b/bin"
-		CIDRSEQSUITE_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/CIDRSeqSuiteSoftware_Version_4_0/"
-		ANNOVAR_DIR="/mnt/clinical/ddl/NGS/Exome_Resources/PROGRAMS/ANNOVAR/2013_09_11"
+	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/r-cftr-3.4.4.0.simg"
+
+	COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT="$SCRIPT_DIR/CombineCryptSpliceandSplice.R"
 
 ##################
 # PIPELINE FILES #
@@ -255,10 +254,10 @@
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_fin=gnomad211_exome_AF_fin," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_asj=gnomad211_exome_AF_asj," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"af_oth=gnomad211_exome_AF_oth," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSmed_AF_popmax," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSo_AF_popmax," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGScer_AF_popmax," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSAF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_topmed_af_popmax=gnomad211_exome_non_topmed_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_neuro_af_popmax=gnomad211_exome_non_neuro_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_cancer_af_popmax=gnomad211_exome_non_cancer_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"controls_af_popmax=gnomad211_exome_controls_AF_popmax," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF=gnomad211_genome_AF," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_popmax=gnomad211_genome_AF_popmax," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_male=gnomad211_genome_AF_male," \
@@ -272,10 +271,15 @@
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_fin=gnomad211_genome_AF_fin," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_asj=gnomad211_genome_AF_asj," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"AF_oth=gnomad211_genome_AF_oth," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSpmed_AF_popmax," 	\
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSro_AF_popmax," \
-			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGSncer_AF_popmax," 	\
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_topmed_AF_popmax=gnomad211_genome_non_topmed_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_neuro_AF_popmax=gnomad211_genome_non_neuro_AF_popmax," \
+			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"non_cancer_AF_popmax=gnomad211_genome_non_cancer_AF_popmax," \
 			ANNOVAR_HEADER_MAPPINGS=$ANNOVAR_HEADER_MAPPINGS"controls_AF_popmax=gnomad211_genome_controls_AF_popmax"
+
+			ANNOVAR_VCF_COLUMNS="CHROM,"
+				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"POS,"
+				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"REF,"
+				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"ALT"
 
 	# currently not using
 
@@ -1546,15 +1550,37 @@ done
 			qsub \
 				$QSUB_ARGS \
 				$SPLICEAI_QUEUE_QSUB_ARG \
-			-N P.01-SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SPLICEAI.log" \
+			-N P.01-RUN_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-RUN_SPLICEAI.log" \
 			-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/P.01-SPLICEAI.sh \
+			$SCRIPT_DIR/P.01-RUN_SPLICEAI.sh \
 				$SPLICEAI_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	###########################################################################################
+	# Reformat SpliceAI to extract just the scores from the vcf file ##########################
+	###########################################################################################
+
+		REFORMAT_SPLICEAI ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$SPLICEAI_QUEUE_QSUB_ARG \
+			-N P.01-A.01-REFORMAT_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-REFORMAT_SPLICEAI.log" \
+			-hold_jid P.01-RUN_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.01-A.01-REFORMAT_SPLICEAI.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1686,7 +1712,31 @@ done
 				$ANNOVAR_REF_BUILD \
 				$ANNOVAR_INFO_FIELD_KEYS \
 				$ANNOVAR_HEADER_MAPPINGS \
+				$ANNOVAR_VCF_COLUMNS \
 				$THREADS \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	###################################################################
+	# COMBINE REFORMATED SPLICEAI AND CRYPTSPLICE OUTPUT WITH ANNOVAR #
+	###################################################################
+
+		COMBINE_ANNOVAR_WITH_SPLICING ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N R.01-COMBINE_ANNOVAR_WITH_SPLICING"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COMBINE_ANNOVAR_WITH_SPLICING.log" \
+			-hold_jid P.01-A.01-REFORMAT_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,Q.01-A.01-REFORMAT_CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/R.01-COMBINE_ANNOVAR_WITH_SPLICING.sh \
+				$COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1708,6 +1758,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		RUN_SPLICEAI
 		echo sleep 0.1s
+		REFORMAT_SPLICEAI
+		echo sleep 0.1s
 		RUN_VEP_VCF
 		echo sleep 0.1s
 		RUN_CRYPTSPLICE
@@ -1717,6 +1769,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		# RUN_VEP_TXT
 		# echo sleep 0.1s
 		RUN_ANNOVAR
+		echo sleep 0.1s
+		COMBINE_ANNOVAR_WITH_SPLICING
 		echo sleep 0.1s
 done
 
@@ -1884,8 +1938,7 @@ M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
 H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
 H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
 H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
-P.01-SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,\
-Q.01-A.01-REFORMAT_CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT,\
+R.01-COMBINE_ANNOVAR_WITH_SPLICING"_"$SGE_SM_TAG"_"$PROJECT,\
 Q.02-CREATE_CFTR2_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
 	$ALIGNMENT_CONTAINER \
@@ -1989,6 +2042,6 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-# 	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-# 		$SEND_TO
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
+	| mail -s "$PERSON_NAME has submitted SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+		$SEND_TO
