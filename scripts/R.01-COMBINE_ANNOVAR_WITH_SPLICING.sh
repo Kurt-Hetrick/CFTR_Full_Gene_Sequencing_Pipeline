@@ -29,7 +29,7 @@
 
 	PROJECT=$3
 	SM_TAG=$4
-	COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT=$5
+	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT=$5
 	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$7
@@ -41,9 +41,10 @@ START_COMBINE_ANNOTATIONS=`date '+%s'` # capture time process starts for wall cl
 	# construct command line
 
 		CMD="singularity exec $COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER Rscript" \
-			CMD=$CMD" $COMBINE_ANNOVAR_WITH_SPLICING_RSCRIPT" \
+			CMD=$CMD" $COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_cryptsplice_prioritized_predictions_reformatted.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.table.txt"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN_ANNOVAR_REPORT.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar""
 
 	# write command line to file and execute the command line

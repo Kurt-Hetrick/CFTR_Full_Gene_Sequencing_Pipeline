@@ -63,6 +63,13 @@ CryptSpliceandSpliceAI$PredictedBy[!is.na(CryptSpliceandSpliceAI$CS_consequence)
 CryptSpliceandSpliceAI$PredictedBy[CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptSpliceandSpliceAI$SAI_DS_AL>=0.5|CryptSpliceandSpliceAI$SAI_DS_DG>=0.5|CryptSpliceandSpliceAI$SAI_DS_DL>=0.5]<-"SpliceAI"
 CryptSpliceandSpliceAI$PredictedBy[(CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptSpliceandSpliceAI$SAI_DS_AL>=0.5|CryptSpliceandSpliceAI$SAI_DS_DG>=0.5|CryptSpliceandSpliceAI$SAI_DS_DL>=0.5)&!is.na(CryptSpliceandSpliceAI$CS_consequence)]<-"SpliceAI and CryptSplice"
 
+
+# #### Step 5: Merge with Annovar output ####
+Annovar <- read.delim(args[3], sep="\t")
+Annovar$varname<-paste0(Annovar$CHROM,":",Annovar$POS,"-",Annovar$REF,">",Annovar$ALT)
+Annovar_withSplice<-merge(Annovar,CryptSpliceandSpliceAI,by="varname",all=TRUE)
+Annovar_withSplice$varname<-NULL
+
 # #### Step 5: Save
-filename=paste0(args[3],".txt")
-write.table(CryptSpliceandSpliceAI,filename,quote=FALSE,row.names=FALSE,sep="\t")
+filename=paste0(args[4],".txt")
+write.table(Annovar_withSplice,filename,quote=FALSE,row.names=FALSE,sep="\t")
