@@ -68,8 +68,57 @@ CryptSpliceandSpliceAI$PredictedBy[(CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptS
 Annovar <- read.delim(args[3], sep="\t")
 Annovar$varname<-paste0(Annovar$CHROM,":",Annovar$POS,"-",Annovar$REF,">",Annovar$ALT)
 Annovar_withSplice<-merge(Annovar,CryptSpliceandSpliceAI,by="varname",all=TRUE)
-Annovar_withSplice$varname<-NULL
 
-# #### Step 5: Save
-filename=paste0(args[4],".txt")
-write.table(Annovar_withSplice,filename,quote=FALSE,row.names=FALSE,sep="\t")
+# #### Step 6: Merge with CFTR2 variant list
+CFTR2<-read.delim(args[5], sep="\t")
+CFTR2$varname<-paste0(CFTR2$CHR,":",CFTR2$POS,"-",CFTR2$REF,">",CFTR2$ALT)
+CFTR2$InCFTR2Report<-"YES"
+CFTR2$CHR<-NULL
+CFTR2$POS<-NULL
+CFTR2$REF<-NULL
+CFTR2$ALT<-NULL
+# A few variants have multiple cDNA names so were duplicated. Remove the duplicates.
+CFTR2<-unique(CFTR2)
+Annovar_withSplice_andCFTR2<-merge(Annovar_withSplice,CFTR2,by="varname",all.x=TRUE)
+Annovar_withSplice_andCFTR2$InCFTR2Report[is.na(Annovar_withSplice_andCFTR2$InCFTR2Report)]<-"NO"
+
+# #### Step 7: Merge with variants in CFTR bed file (within and flanking exons)
+CFTRexonandflanking<-read.delim(args[6], sep="\t")
+CFTRexonandflanking$varname<-paste0(CFTRexonandflanking$CHR,":",CFTRexonandflanking$POS,"-",CFTRexonandflanking$REF,">",CFTRexonandflanking$ALT)
+CFTRexonandflanking$InCFTRexonorflanking<-"YES"
+CFTRexonandflanking$CHR<-NULL
+CFTRexonandflanking$POS<-NULL
+CFTRexonandflanking$REF<-NULL
+CFTRexonandflanking$ALT<-NULL
+Annovar_withSplice_andCFTR2_andexonflankinginfo<-merge(Annovar_withSplice_andCFTR2,CFTRexonandflanking,by="varname",all.x=TRUE)
+Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking[is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking)]<-"NO"
+Annovar_withSplice_andCFTR2_andexonflankinginfo$varname<-NULL
+
+# #### Step 8: Subset to variants of interest
+Variantsofinterest<-subset(Annovar_withSplice_andCFTR2_andexonflankinginfo,
+	Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking=="YES"|
+	Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTR2Report=="YES"|
+	(!is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$PredictedBy))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_afr)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_afr))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_amr)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_amr))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_eas)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_eas))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_nfe)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_nfe))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_fin)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_fin))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_asj)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_asj))&
+	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_oth)<0.01|
+	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_oth)))
+
+# #### Step 9: Save
+fullfilename=paste0(args[4],".txt")
+write.table(Annovar_withSplice_andCFTR2_andexonflankinginfo,fullfilename,quote=FALSE,row.names=FALSE,sep="\t")
+
+subsetfilename=paste0(args[4],"_variantsofinterest.txt")
+write.table(Variantsofinterest,subsetfilename,quote=FALSE,row.names=FALSE,sep="\t")

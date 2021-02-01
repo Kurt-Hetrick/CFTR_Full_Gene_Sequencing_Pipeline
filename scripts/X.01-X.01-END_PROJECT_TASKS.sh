@@ -320,6 +320,12 @@
 				printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" | sed 's/ /\t/g' \
 						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
+			for sample in $(awk 'BEGIN {OFS="\t"} NF==6 {print $1}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | sort | uniq);
+				do
+					awk '$1=="'$sample'" {print $0 "\n" "\n"}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | head -n 1 \
+					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+			done
+
 			sleep 2s
 
 			mail -s "FAILED JOBS: $PROJECT: $SAMPLE_SHEET_NAME" \

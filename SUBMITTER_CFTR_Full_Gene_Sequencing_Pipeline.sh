@@ -113,9 +113,9 @@
 
 				SPLICEAI_QUEUE_QSUB_ARG=$(echo " -q $QUEUE_LIST" | sed 's/rnd.q//g' | sed 's/prod.q//g')
 
-			# REQUESTING AN ENTIRE SERVER
+			# REQUESTING AN ENTIRE SERVER (specifically for cgc.q)
 
-				REQUEST_ENTIRE_SERVER_QSUB_ARG=" -l excl=true"
+				REQUEST_ENTIRE_SERVER_QSUB_ARG=" -pe slots 5"
 
 			# When you install the API modules for VEP in a non-default location (which is $HOME),
 			# you have to set the $PERL5LIB variable to the new location.
@@ -132,37 +132,36 @@
 #####################
 
 	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/ddl_ce_control_align-0.0.4.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ddl_ce_control_align:0.0.4
-			# contains the following software and is on Ubuntu 16.04.5 LTS
-				# gatk 4.0.11.0 (base image). also contains the following.
-					# Python 3.6.2 :: Continuum Analytics, Inc.
-						# samtools 0.1.19
-						# bcftools 0.1.19
-						# bedtools v2.25.0
-						# bgzip 1.2.1
-						# tabix 1.2.1
-						# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
-						# R 3.2.5
-							# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
-							# getopt_1.20.0.tar.gz
-							# optparse_1.3.2.tar.gz
-							# data.table_1.10.4-2.tar.gz
-							# gsalib_2.1.tar.gz
-							# ggplot2_2.2.1.tar.gz
-						# openjdk version "1.8.0_181"
-						# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
-				# added
-					# picard.jar 2.17.0 (as /gatk/picard.jar)
-					# samblaster-v.0.1.24
-					# sambamba-0.6.8
-					# bwa-0.7.15
-					# datamash-1.6
-					# verifyBamID v1.1.3
-					# samtools 1.10
-					# bgzip 1.10
-					# tabix 1.10
-					# bcftools 1.10.2
-					# parallel 20161222
+		# contains the following software and is on Ubuntu 16.04.5 LTS
+			# gatk 4.0.11.0 (base image). also contains the following.
+				# Python 3.6.2 :: Continuum Analytics, Inc.
+					# samtools 0.1.19
+					# bcftools 0.1.19
+					# bedtools v2.25.0
+					# bgzip 1.2.1
+					# tabix 1.2.1
+					# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
+					# R 3.2.5
+						# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
+						# getopt_1.20.0.tar.gz
+						# optparse_1.3.2.tar.gz
+						# data.table_1.10.4-2.tar.gz
+						# gsalib_2.1.tar.gz
+						# ggplot2_2.2.1.tar.gz
+					# openjdk version "1.8.0_181"
+					# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
+			# added
+				# picard.jar 2.17.0 (as /gatk/picard.jar)
+				# samblaster-v.0.1.24
+				# sambamba-0.6.8
+				# bwa-0.7.15
+				# datamash-1.6
+				# verifyBamID v1.1.3
+				# samtools 1.10
+				# bgzip 1.10
+				# tabix 1.10
+				# bcftools 1.10.2
+				# parallel 20161222
 
 	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/gatk3-3.7-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
@@ -175,9 +174,8 @@
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 
 	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/manta-1.6.0.0.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/manta:1.6.0.0
-			# singularity 2 creates a simg file (this is what I used)
-			# singularity 3 (this is what the cgc nodes have) creates a .sif file
+		# singularity 2 creates a simg file (this is what I used)
+		# singularity 3 (this is what the cgc nodes have) creates a .sif file
 
 	SPLICEAI_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/spliceai-1.3.1.1.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/spliceai:1.3.1.1
@@ -185,20 +183,16 @@
 			# the only ones that don't are the c6100s (prod.q,rnd.q,c6100-4,c6100-8)
 
 	VEP_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vep-102.0.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/ensemble/vep:102.0
 
 	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/cryptsplice-1.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/cryptsplice:1
 
 	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/umich/vt:0.5772.ca352e2c.0
 
 	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-dev.simg"
-		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/annovarwrangler:dev
 
 	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/r-cftr-3.4.4.1.simg"
 
-	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT="$SCRIPT_DIR/CombineCryptSpliceandSpliceandmergeAnnovar.R"
+	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT="$SCRIPT_DIR/CombineCryptSpliceandSpliceandmergeAnnovar_andmergeCFTR2.R"
 
 ##################
 # PIPELINE FILES #
@@ -215,6 +209,7 @@
 	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
 	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
+	CFTR_FOCUSED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CF_CFTR.NGS1.v1.140604.bed"
 
 	# HGVS CDNA SUBMITTED TO VEP
 		CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.DaN.vcf.gz"
@@ -223,16 +218,6 @@
 
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
 		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
-
-	# VEP FILES or FOLDERS
-		VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
-		VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
-		VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
-		VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
-		VEP_SPLICEAI_CUTOFF="0.5"
-		VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
-		VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
-		VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz"
 
 	# ANNOVAR PARAMETERS AND INPUTS
 		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR.final.csv"
@@ -281,9 +266,15 @@
 				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"REF,"
 				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"ALT"
 
-	# currently not using
-
-		DBSNP_129="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
+	# VEP FILES or FOLDERS (NOT CURRENTLY IN USE)
+		# VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
+		# VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
+		# VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
+		# VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
+		# VEP_SPLICEAI_CUTOFF="0.5"
+		# VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
+		# VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
+		# VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz""
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -655,7 +646,8 @@ done
 				$BAIT_BED \
 				$TITV_BED \
 				$REF_GENOME \
-				$GVCF_PAD
+				$GVCF_PAD \
+				$CFTR2_VCF
 		}
 
 	#######################################
@@ -1576,7 +1568,7 @@ done
 			echo \
 			qsub \
 				$QSUB_ARGS \
-				$SPLICEAI_QUEUE_QSUB_ARG \
+				$STANDARD_QUEUE_QSUB_ARG \
 			-N P.01-A.01-REFORMAT_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-REFORMAT_SPLICEAI.log" \
 			-hold_jid P.01-RUN_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT \
@@ -1585,6 +1577,29 @@ done
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
+		}
+
+	########################################################
+	# extract CFTR FOCUSED VARIANTS FROM SPLICEAI FILE #####
+	########################################################
+
+		EXTRACT_CFTR_FOCUSED ()
+		{
+			echo \
+			qsub \
+				$QSUB_ARGS \
+				$STANDARD_QUEUE_QSUB_ARG \
+			-N P.01-A.02-EXTRACT_CFTR_FOCUSED"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-EXTRACT_CFTR_FOCUSED.log" \
+			-hold_jid P.01-RUN_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,C.01-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/P.01-A.02-EXTRACT_CFTR_FOCUSED.sh \
+				$ALIGNMENT_CONTAINER \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$CFTR_FOCUSED \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
@@ -1664,35 +1679,35 @@ done
 	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice #
 	#################################################################################################
 
-		RUN_VEP_TXT ()
-		{
-			echo \
-			qsub \
-				$QSUB_ARGS \
-				$STANDARD_QUEUE_QSUB_ARG\
-				$VEP_HTSLIB_QSUB_ARG \
-				$VEP_PERL5LIB_QSUB_ARG \
-			-N P.04-VEP_TXGT"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VEP_TXT.log" \
-			-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/P.04-VEP_TXT.sh \
-				$VEP_CONTAINER \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$VEP_REF_CACHE \
-				$VEP_FASTA \
-				$VEP_MAXENTSCAN_DIR \
-				$VEP_SPLICEAI_SNV \
-				$VEP_SPLICEAI_INDEL \
-				$VEP_SPLICEAI_CUTOFF \
-				$VEP_CONDEL_CONFIG_DIR \
-				$VEP_DBSCSNV \
-				$VEP_DBNSFP \
-				$THREADS \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
+		# RUN_VEP_TXT ()
+		# {
+		# 	echo \
+		# 	qsub \
+		# 		$QSUB_ARGS \
+		# 		$STANDARD_QUEUE_QSUB_ARG\
+		# 		$VEP_HTSLIB_QSUB_ARG \
+		# 		$VEP_PERL5LIB_QSUB_ARG \
+		# 	-N P.04-VEP_TXGT"_"$SGE_SM_TAG"_"$PROJECT \
+		# 		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VEP_TXT.log" \
+		# 	-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
+		# 	$SCRIPT_DIR/P.04-VEP_TXT.sh \
+		# 		$VEP_CONTAINER \
+		# 		$CORE_PATH \
+		# 		$PROJECT \
+		# 		$SM_TAG \
+		# 		$VEP_REF_CACHE \
+		# 		$VEP_FASTA \
+		# 		$VEP_MAXENTSCAN_DIR \
+		# 		$VEP_SPLICEAI_SNV \
+		# 		$VEP_SPLICEAI_INDEL \
+		# 		$VEP_SPLICEAI_CUTOFF \
+		# 		$VEP_CONDEL_CONFIG_DIR \
+		# 		$VEP_DBSCSNV \
+		# 		$VEP_DBNSFP \
+		# 		$THREADS \
+		# 		$SAMPLE_SHEET \
+		# 		$SUBMIT_STAMP
+		# }
 
 	##################################
 	# RUN ANNOVAR ON CFTR REGION VCF #
@@ -1722,11 +1737,11 @@ done
 				$SUBMIT_STAMP
 		}
 
-	###################################################################
-	# COMBINE REFORMATED SPLICEAI AND CRYPTSPLICE OUTPUT WITH ANNOVAR #
-	###################################################################
+	##############################################################################################
+	# COMBINE REFORMATED SPLICEAI AND CRYPTSPLICE OUTPUT WITH ANNOVAR FOCUSED ON CFTR EXONS, ETC #
+	##############################################################################################
 
-		COMBINE_ANNOVAR_WITH_SPLICING ()
+		COMBINE_ANNOVAR_WITH_SPLICING_FOCUSED ()
 		{
 			echo \
 			qsub \
@@ -1734,12 +1749,13 @@ done
 				$STANDARD_QUEUE_QSUB_ARG \
 			-N R.01-COMBINE_ANNOVAR_WITH_SPLICING"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COMBINE_ANNOVAR_WITH_SPLICING.log" \
-			-hold_jid P.01-A.01-REFORMAT_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,Q.01-A.01-REFORMAT_CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT,P.05-RUN_ANNOVAR"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid P.01-A.01-REFORMAT_SPLICEAI"_"$SGE_SM_TAG"_"$PROJECT,Q.01-A.01-REFORMAT_CRYPTSPLICE"_"$SGE_SM_TAG"_"$PROJECT,P.05-RUN_ANNOVAR"_"$SGE_SM_TAG"_"$PROJECT,P.01-A.02-EXTRACT_CFTR_FOCUSED"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/R.01-COMBINE_ANNOVAR_WITH_SPLICING.sh \
 				$COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
+				$CFTR2_VCF \
 				$COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
@@ -1764,6 +1780,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		REFORMAT_SPLICEAI
 		echo sleep 0.1s
+		EXTRACT_CFTR_FOCUSED
+		echo sleep 0.1s
 		RUN_VEP_VCF
 		echo sleep 0.1s
 		RUN_CRYPTSPLICE
@@ -1774,7 +1792,9 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		# echo sleep 0.1s
 		RUN_ANNOVAR
 		echo sleep 0.1s
-		COMBINE_ANNOVAR_WITH_SPLICING
+		COMBINE_ANNOVAR_WITH_SPLICING_FULL
+		echo sleep 0.1s
+		COMBINE_ANNOVAR_WITH_SPLICING_FOCUSED
 		echo sleep 0.1s
 done
 

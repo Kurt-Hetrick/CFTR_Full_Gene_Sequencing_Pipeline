@@ -38,8 +38,10 @@
 		TITV_BED_NAME=$(basename $TITV_BED .bed)
 	REF_GENOME=$8
 		REF_DIR=$(dirname $REF_GENOME)
-		REF_BASENAME=$(basename $REF_GENOME | sed 's/.fasta//g ; s/.fa//g')
+		REF_BASENAME=$(basename $REF_GENOME | sed 's/.fasta$//g ; s/.fa$//g')
 	GVCF_PAD=$9
+	CFTR2_VCF=${10}
+		CFTR2_VCF_BASENAME=$(basename $CFTR2_VCF .vcf.gz)
 
 # FIX THE BAIT BED FILE.
 	# make sure that there is EOF
@@ -118,3 +120,12 @@
 			; awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
 				$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME".bed") \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$TARGET_BED_NAME"-picard.bed"
+
+# this technically isn't a bed file, but it is reformatting a file that is used later in the pipeline
+# so I'm putting this here.
+
+	zgrep -v ^# $CFTR2_VCF \
+	| awk 'BEGIN {print "CHR" , "POS" , "REF" , "ALT"} \
+			{print $1,$2,$4,$5}' \
+	| sed s'/ /\t/g' \
+	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$CFTR2_VCF_BASENAME".txt"

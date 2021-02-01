@@ -29,10 +29,12 @@
 
 	PROJECT=$3
 	SM_TAG=$4
-	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT=$5
-	SAMPLE_SHEET=$6
+	CFTR2_VCF=$5
+		CFTR2_VCF_BASENAME=$(basename $CFTR2_VCF .vcf.gz)
+	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT=$6
+	SAMPLE_SHEET=$7
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$7
+	SUBMIT_STAMP=$8
 
 # extract score from spliceai vcf output
 
@@ -45,7 +47,17 @@ START_COMBINE_ANNOTATIONS=`date '+%s'` # capture time process starts for wall cl
 			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_cryptsplice_prioritized_predictions_reformatted.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.table.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN_ANNOVAR_REPORT.txt"" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar""
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$CFTR2_VCF_BASENAME".txt"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_FOCUSED_VARIANT.txt""
+
+	# inputs for R script
+		# 1. reformatted cryptsplice output: from Q.01-A.01-REFORMAT_CRYPTSPLICE.sh
+		# 2. reformatted spliceai output: from P.01-A.01-REFORMAT_SPLICEAI.sh
+		# 3. annovar report
+		# 4. output file name prefix
+		# 5. reformatted cftr2 sites file (from C.01_FIX_BED.sh)
+		# 6. variants in focused cftr regions (exons plus a couple other bases): from P.01-A.02-EXTRACT_CFTR_FOCUSED.sh
 
 	# write command line to file and execute the command line
 
