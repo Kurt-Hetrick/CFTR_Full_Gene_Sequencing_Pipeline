@@ -28,9 +28,10 @@
 	CORE_PATH=$2
 	PROJECT=$3
 	SM_TAG=$4
-	SAMPLE_SHEET=$5
+	EXPECTED_SEX=$5
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$6
+	SUBMIT_STAMP=$7
 
 # next script will cat everything together and add the header.
 # dirty validations count NF, if not X, then say haha you suck try again and don't write to cat file.
@@ -154,7 +155,7 @@
 
 	if [[ ! -f $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.BARCODE.vcf ]]
 		then
-			echo -e NA'\t'NaN'\t'NaN \
+			echo -e NA'\t'NaN'\t'NaN'\t'$EXPECTED_SEX \
 			| singularity exec $ALIGNMENT_CONTAINER datamash \
 				transpose \
 			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -164,9 +165,9 @@
 			grep -v "^#" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG.BARCODE.vcf \
 				| awk '{X_HET_COUNT+=($1=="X" && $10 ~ /^0\/1/)} \
 				{Y_VAR_COUNT+=($1=="Y" && $6>100 && $7=="PASS" && $10 ~ /^.\/./)} \
-					END {if (X_HET_COUNT=="0" && Y_VAR_COUNT>=5) print "MALE",X_HET_COUNT,Y_VAR_COUNT; \
-					else if (X_HET_COUNT>=1 && Y_VAR_COUNT=="0") print "FEMALE",X_HET_COUNT,Y_VAR_COUNT; \
-					else print "UNDETERMINED",X_HET_COUNT,Y_VAR_COUNT}' \
+					END {if (X_HET_COUNT=="0" && Y_VAR_COUNT>=5) print "MALE",X_HET_COUNT,Y_VAR_COUNT,"'$EXPECTED_SEX'"; \
+					else if (X_HET_COUNT>=1 && Y_VAR_COUNT=="0") print "FEMALE",X_HET_COUNT,Y_VAR_COUNT,"'$EXPECTED_SEX'"; \
+					else print "UNDETERMINED",X_HET_COUNT,Y_VAR_COUNT,"'$EXPECTED_SEX'"}' \
 				| sed 's/ /\t/g' \
 				| singularity exec $ALIGNMENT_CONTAINER datamash \
 					transpose \

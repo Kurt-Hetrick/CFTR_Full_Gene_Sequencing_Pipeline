@@ -300,7 +300,7 @@
 				| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 				| awk 'BEGIN {FS=","; OFS="\t"} $8=="'$SAMPLE'" \
 				{split($19,INDEL,";"); \
-				print $1,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
+				print $1,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2],$20}' \
 					| sort \
 					| uniq`)
 
@@ -366,6 +366,10 @@
 
 				KNOWN_INDEL_1=${SAMPLE_ARRAY[9]}
 				KNOWN_INDEL_2=${SAMPLE_ARRAY[10]}
+
+			# EXPECTED SEX
+
+				EXPECTED_SEX=${SAMPLE_ARRAY[11]}
 		}
 
 	##################################
@@ -1945,6 +1949,7 @@ $SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
 	$CORE_PATH \
 	$PROJECT \
 	$SM_TAG \
+	$EXPECTED_SEX \
 	$SAMPLE_SHEET \
 	$SUBMIT_STAMP
 }
@@ -2025,7 +2030,8 @@ done
 			$SCRIPT_DIR \
 			$SUBMITTER_ID \
 			$SAMPLE_SHEET \
-			$SUBMIT_STAMP
+			$SUBMIT_STAMP \
+			$SEND_TO
 	}
 
 # final loop
@@ -2039,6 +2045,12 @@ for PROJECT in $(awk 1 $SAMPLE_SHEET \
 		BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP
 		PROJECT_WRAP_UP
 done
+
+# MESSAGE THAT SAMPLE SHEET HAS FINISHED SUBMITTING
+
+printf "echo\n"
+
+printf "echo $SAMPLE_SHEET has finished submitting at `date`\n"
 
 # EMAIL WHEN DONE SUBMITTING
 

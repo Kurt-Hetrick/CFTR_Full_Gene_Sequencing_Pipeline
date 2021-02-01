@@ -34,6 +34,7 @@
 	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
 	SUBMIT_STAMP=$7
+	SEND_TO=$8
 
 		TIMESTAMP=`date '+%F.%H-%M-%S'`
 
@@ -63,6 +64,7 @@
 			"SEX",\
 			"X_HET_COUNT",\
 			"Y_COUNT",\
+			"EXPECTED_SEX",\
 			"VERIFYBAM_FREEMIX_PCT",\
 			"VERIFYBAM_#SNPS",\
 			"VERIFYBAM_FREELK1",\
@@ -192,13 +194,13 @@
 ##### If samples have multiple libraries or total failures send notification to MS Teams #####
 ##############################################################################################
 
-	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
-		then
-			mail -s "BATCH $SAMPLE_SHEET_NAME FOR $PROJECT HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
-			$SEND_TO \
-			< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
-				sleep 2s
-	fi
+	# if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
+	# 	then
+	# 		mail -s "BATCH $SAMPLE_SHEET_NAME FOR $PROJECT HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
+	# 		$SEND_TO \
+	# 		< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
+	# 			sleep 2s
+	# fi
 
 ##############################################################
 ##### CLEAN-UP OR NOT DEPENDING ON IF JOBS FAILED OR NOT #####
@@ -263,6 +265,14 @@
 
 			RUN_MD5_PARALLEL
 
+			printf "$PERSON_NAME Was The Submitter\n \
+				REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
+				BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
+				FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"\n\n \
+				NO JOBS FAILED: TEMP FILES DELETED" \
+				| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+					$SEND_TO
+
 		else
 			# CONSTRUCT MESSAGE TO BE SENT SUMMARIZING THE FAILED JOBS
 				printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR:\n" \
@@ -286,7 +296,7 @@
 				printf "###################################################################\n" \
 					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
-				printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE:\n" \
 					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
 				printf "###################################################################\n" \
@@ -301,7 +311,7 @@
 				printf "###################################################################\n" \
 					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
-				printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE:\n" \
 					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
 				printf "###################################################################\n" \
@@ -309,22 +319,6 @@
 
 				printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" | sed 's/ /\t/g' \
 						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
-
-			for sample in $(grep -v CONCORDANCE $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | awk 'BEGIN {OFS="\t"} NF==6 {print $1}' | sort | uniq);
-				do
-					awk '$1=="'$sample'" {print $0 "\n" "\n"}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | head -n 1 \
-					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
-			done
-
-				printf "###################################################################\n" \
-					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
-
-				printf "FOR GIGGLES, HERE ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
-					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
-
-				grep CONCORDANCE $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" \
-					| awk 'BEGIN {OFS="\t"} NF==6 {print $1}' \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
 
 			sleep 2s
 
@@ -397,23 +391,23 @@
 	# If there are samples with multiple libraries send that notification along with paths to the various report
 	# otherwise just send out the email detailing where the reports are located at.
 
-		if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
-			then
-				printf "$PERSON_NAME Was The Submitter\n \
-				THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
-				REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
-				BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
-				FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
-				| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-					$SEND_TO
-			else
-				printf "$PERSON_NAME Was The Submitter\n \
-				REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
-				BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
-				FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
-				| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-					$SEND_TO
-		fi
+		# if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
+		# 	then
+		# 		printf "$PERSON_NAME Was The Submitter\n \
+		# 		THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
+		# 		REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
+		# 		BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
+		# 		FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
+		# 		| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+		# 			$SEND_TO
+		# 	else
+		# 		printf "$PERSON_NAME Was The Submitter\n \
+		# 		REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
+		# 		BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
+		# 		FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
+		# 		| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
+		# 			$SEND_TO
+		# fi
 
 	# this is black magic that I don't know if it really helps. was having problems with getting the emails to send so I put a little delay in here.
 
