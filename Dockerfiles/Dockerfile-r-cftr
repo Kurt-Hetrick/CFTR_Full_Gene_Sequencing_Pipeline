@@ -1,4 +1,4 @@
-FROM r-base:3.4.4
+FROM rstudio/r-base:3.4.4-xenial
 
 SHELL ["/bin/bash", "-c"]
 
