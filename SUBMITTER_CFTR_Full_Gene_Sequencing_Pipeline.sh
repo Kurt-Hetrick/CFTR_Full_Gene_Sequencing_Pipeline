@@ -4,30 +4,30 @@
 
 	SAMPLE_SHEET=$1
 
-	QUEUE_LIST=$2 # optional. the queues that you want to submit to.
-		# if no 2nd argument present then the default is cgc.q
-
-		if [[ ! $QUEUE_LIST ]]
-			then
-			QUEUE_LIST="cgc.q"
-		fi
-
-	THREADS=$3 # optional. how many cpu processors you want to use for programs that are multi-threaded
-		# if no 3rd argument present then the default is 6
-		# if you want to set this then you need to set the 2nd argument as well (even to the default)
-
-		if [[ ! $THREADS ]]
-			then
-			THREADS="6"
-		fi
-
-	PRIORITY=$4 # optional. how high you want the tasks to have when submitting.
-		# if no 4th argument present then the default is -15.
-		# if you want to set this then you need to set the 3rd argument as well (even to the default)
+	PRIORITY=$2 # optional. how high you want the tasks to have when submitting.
+		# if no 2nd argument present then the default is -9.
 
 			if [[ ! $PRIORITY ]]
 				then
-				PRIORITY="-15"
+				PRIORITY="-9"
+			fi
+
+	QUEUE_LIST=$3 # optional. the queues that you want to submit to.
+		# if you want to set this then you need to set the 2nd argument as well (even to the default)
+		# if no 3rd argument present then the default is cgc.q
+
+			if [[ ! $QUEUE_LIST ]]
+				then
+				QUEUE_LIST="cgc.q"
+			fi
+
+	THREADS=$4 # optional. how many cpu processors you want to use for programs that are multi-threaded
+		# if you want to set this then you need to set the 3rd argument as well (even to the default)
+		# if no 4th argument present then the default is 6
+
+			if [[ ! $THREADS ]]
+				then
+				THREADS="6"
 			fi
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
