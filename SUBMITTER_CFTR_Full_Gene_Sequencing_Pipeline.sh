@@ -198,29 +198,30 @@
 # PIPELINE FILES #
 ##################
 
-	GENE_LIST="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/RefSeqGene.GRCh37.rCRS.MT.bed"
-		# md5 dec069c279625cfb110c2e4c5480e036
-	VERIFY_VCF="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
-	PHASE3_1KG_AUTOSOMES="/mnt/clinical/ddl/NGS/Exome_Resources/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
+	GENE_LIST="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/RefSeqGene.GRCh37.rCRS.MT.bed"
 	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_ANNOTATED.bed"
 	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTRFullGene_BarcodeSNPs.bed"
 	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/twistCFTRpanelregion_grch37.bed.gz"
-	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/configManta_CFTR.py.ini"
-	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
-	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
 	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
 	CFTR_FOCUSED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CF_CFTR.NGS1.v1.140604.bed"
 
-	# HGVS CDNA SUBMITTED TO VEP
-		CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.DaN.vcf.gz"
+	VERIFY_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
 
-		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.vep.CFTR_ONLY.sort.no_header.txt"
+	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/configManta_CFTR.py.ini"
+
+	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
+	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
+
+	# HGVS CDNA SUBMITTED TO VEP
+		CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.vep.DaN.vcf.gz"
+
+		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.vep.CFTR_ONLY.sort.no_header.txt"
 
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
-		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_31July2020_plusDDL_210107mbs_MOD.sorted_cdna.no_header.txt"
+		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.sorted_cdna.no_header.txt"
 
 	# ANNOVAR PARAMETERS AND INPUTS
-		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR.final.csv"
+		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/CFTR.final.csv"
 		ANNOVAR_REF_BUILD="hg19"
 
 		ANNOVAR_INFO_FIELD_KEYS="VariantType," \
@@ -384,7 +385,7 @@
 		{
 			CREATE_SAMPLE_ARRAY
 			MAKE_PROJ_DIR_TREE
-			echo Project started at `date` >| $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt
+			echo Project started at `date` >| $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
 		}
 
 #####################
@@ -1125,7 +1126,6 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$PHASE3_1KG_AUTOSOMES \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}

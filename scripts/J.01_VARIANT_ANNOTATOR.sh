@@ -29,10 +29,9 @@
 	PROJECT=$3
 	SM_TAG=$4
 	REF_GENOME=$5
-	PHASE3_1KG_AUTOSOMES=$6
-	SAMPLE_SHEET=$7
+	SAMPLE_SHEET=$6
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
-	SUBMIT_STAMP=$8
+	SUBMIT_STAMP=$7
 
 START_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process starts for wall clock tracking purposes.
 
@@ -52,15 +51,7 @@ START_ADD_MORE_ANNOTATION=`date '+%s'` # capture time process starts for wall cl
 			CMD=$CMD" --annotation GCContent" \
 			CMD=$CMD" --annotation HomopolymerRun" \
 			CMD=$CMD" --annotation TandemRepeatAnnotator" \
-			CMD=$CMD" --annotation VariantType" \
-			CMD=$CMD" --resource:OneKGP $PHASE3_1KG_AUTOSOMES" \
-			CMD=$CMD" --resourceAlleleConcordance" \
-			CMD=$CMD" --expression OneKGP.AF" \
-			CMD=$CMD" --expression OneKGP.EAS_AF" \
-			CMD=$CMD" --expression OneKGP.AMR_AF" \
-			CMD=$CMD" --expression OneKGP.AFR_AF" \
-			CMD=$CMD" --expression OneKGP.EUR_AF" \
-			CMD=$CMD" --expression OneKGP.SAS_AF"
+			CMD=$CMD" --annotation VariantType"
 
 	# write command line to file and execute the command line
 

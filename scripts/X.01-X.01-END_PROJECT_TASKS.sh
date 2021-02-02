@@ -38,6 +38,10 @@
 
 		TIMESTAMP=`date '+%F.%H-%M-%S'`
 
+	# grab submitter's name
+
+		PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
 # combining all the individual qc reports for the project and adding the header.
 
 	for SM_TAG in $(awk 1 $SAMPLE_SHEET \
@@ -231,9 +235,9 @@
 				PLATFORM_UNIT=${SAMPLE_ARRAY[2]}
 		}
 
-	# RUN MD5 IN PARALLEL USING 90% OF THE CPU PROCESSORS
+	# RUN MD5 IN PARALLEL USING 90% OF THE CPU PROCESSORS ON THE PIPELINE OUTPUT FILES
 
-		RUN_MD5_PARALLEL ()
+		RUN_MD5_PARALLEL_OUTPUT_FILES ()
 		{
 			find $CORE_PATH/$PROJECT -type f \
 				| cut -f 2 \
@@ -242,7 +246,25 @@
 						--no-notice \
 						--jobs 90% \
 						md5sum {} \
-			> $CORE_PATH/$PROJECT/REPORTS/"md5_"$PROJECT"_"$TIMESTAMP".txt"
+			> $CORE_PATH/$PROJECT/REPORTS/"md5_output_files_"$PROJECT"_"$TIMESTAMP".txt"
+		}
+
+	# RUN MD5 IN PARALLEL USING 90% OF THE CPU PROCESSORS ON THE PIPELINE RESOURCE FILES
+
+		RUN_MD5_PARALLEL_RESOURCE_FILES ()
+		{
+			find \
+				$SCRIPT_DIR/../resources/bed_files/ \
+				$SCRIPT_DIR/../resources/CFTR2/ \
+				$SCRIPT_DIR/../resources/config_misc \
+				-type f \
+			| cut -f 2 \
+			| singularity exec $ALIGNMENT_CONTAINER \
+				parallel \
+					--no-notice \
+					--jobs 90% \
+					md5sum {} \
+			> $CORE_PATH/$PROJECT/REPORTS/"md5_pipeline_resources_"$PROJECT"_"$TIMESTAMP".txt"
 		}
 
 # IF THERE ARE NO FAILED JOBS THEN DELETE TEMP FILES STARTING WITH SM_TAG OR PLATFORM_UNIT
@@ -263,12 +285,14 @@
 					echo rm -rf $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/$PLATFORM_UNIT | sed "s|,|$DELETION_PATH|g" | bash
 			done
 
-			RUN_MD5_PARALLEL
+			RUN_MD5_PARALLEL_OUTPUT_FILES
+			RUN_MD5_PARALLEL_RESOURCE_FILES
 
-			printf "$PERSON_NAME Was The Submitter\n \
+			printf "\n$PERSON_NAME Was The Submitter\n\n \
 				REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
 				BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
-				FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"\n\n \
+				FILE MD5 HASHSUMS:\n "md5_output_files_"$PROJECT"_"$TIMESTAMP".txt"\n \
+				"md5_pipeline_resources_"$PROJECT"_"$TIMESTAMP".txt"\n\n \
 				NO JOBS FAILED: TEMP FILES DELETED" \
 				| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
 					$SEND_TO
@@ -351,74 +375,14 @@
 		{print $0}' \
 		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
 
-#############################################################
-##### Summarize Wall Clock times ############################
-##### This is probably garbage. I'll look at this later #####
-#############################################################
-
-	# summarize by sample by taking the max times per concurrent task group and summing them up
-
-		sed 's/,/\t/g' $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv" \
-			| awk 'NR>1' \
-			| sed 's/_BAM_REPORTS//g' \
-			| sort -k 1,1 -k 2,2 -k 3,3 -k 4,4 \
-			| awk 'BEGIN {OFS="\t"} {print $0,($7-$6),($7-$6)/60,($7-$6)/3600}' \
-			| singularity exec $ALIGNMENT_CONTAINER datamash -s -g 1,2,3 max 13 max 14 max 15 | tee $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
-			| singularity exec $ALIGNMENT_CONTAINER datamash -g 1,2 sum 4 sum 5 sum 6 \
-			| awk 'BEGIN {print "SAMPLE","PROJECT","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
-			| sed -r 's/[[:space:]]+/,/g' \
-		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE.csv"
-
-	# break down by the longest task within a group per sample
-
-		sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
-			| awk 'BEGIN {print "SAMPLE","PROJECT","TASK_GROUP","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
-			| sed -r 's/[[:space:]]+/,/g' \
-		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE_GROUP.csv"
-
 # put a stamp as to when the run was done
 
-		echo Project finished at `date` >> $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
+	echo Project finished at `date` >> $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
 
-#######################################################
-#######################################################
-##### SEND EMAIL NOTIFICATION SUMMARIES WHEN DONE #####
-#######################################################
-#######################################################
+# this is black magic that I don't know if it really helps. was having problems with getting the emails to send so I put a little delay in here.
 
-	# grab email addy
+	sleep 2s
 
-		SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
+# add timestamp when project finished processing.
 
-	# grab submitter's name
-
-		PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
-
-	# If there are samples with multiple libraries send that notification along with paths to the various report
-	# otherwise just send out the email detailing where the reports are located at.
-
-		# if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
-		# 	then
-		# 		printf "$PERSON_NAME Was The Submitter\n \
-		# 		THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
-		# 		REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
-		# 		BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
-		# 		FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
-		# 		| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-		# 			$SEND_TO
-		# 	else
-		# 		printf "$PERSON_NAME Was The Submitter\n \
-		# 		REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
-		# 		BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
-		# 		FILE MD5 HASHSUMS:\n "md5_"$PROJECT"_"$TIMESTAMP".txt"" \
-		# 		| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing SUBMITTER_CFTR_Full_Gene_Sequencing_Pipeline.sh" \
-		# 			$SEND_TO
-		# fi
-
-	# this is black magic that I don't know if it really helps. was having problems with getting the emails to send so I put a little delay in here.
-
-		sleep 2s
-
-	# add timestamp when project finished processing.
-
-		echo Project started at `date` >> $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt
+	echo Project started at `date` >> $CORE_PATH/$PROJECT/PROJECT_START_END_TIMESTAMP.txt
