@@ -266,16 +266,6 @@
 				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"REF,"
 				ANNOVAR_VCF_COLUMNS=$ANNOVAR_VCF_COLUMNS"ALT"
 
-	# VEP FILES or FOLDERS (NOT CURRENTLY IN USE)
-		# VEP_FASTA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data/homo_sapiens_refseq/102_GRCh37/Homo_sapiens.GRCh37.75.dna.primary_assembly.fa.gz"
-		# VEP_MAXENTSCAN_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/MaxEntScan"
-		# VEP_SPLICEAI_SNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.snv.hg19.vcf.gz"
-		# VEP_SPLICEAI_INDEL="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Predicting_splicing_from_primary_sequence-66029966/genome_scores_v1.3-194103939/genome_scores_v1.3-ds.20a701bc58ab45b59de2576db79ac8d0/spliceai_scores.raw.indel.hg19.vcf.gz"
-		# VEP_SPLICEAI_CUTOFF="0.5"
-		# VEP_CONDEL_CONFIG_DIR="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/Condel/config"
-		# VEP_DBSCSNV="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbscSNV/dbscSNV1.1_GRCh37.txt.gz"
-		# VEP_DBNSFP="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_plugin_data/dbNFSP/dbNSFP4.1c_grch37.gz""
-
 #################################
 ##### MAKE A DIRECTORY TREE #####
 #################################
@@ -1675,40 +1665,6 @@ done
 				$SUBMIT_STAMP
 		}
 
-	#################################################################################################
-	# run base vep to create cftr region vcf with gene symbol/transcript annotation for cryptsplice #
-	#################################################################################################
-
-		# RUN_VEP_TXT ()
-		# {
-		# 	echo \
-		# 	qsub \
-		# 		$QSUB_ARGS \
-		# 		$STANDARD_QUEUE_QSUB_ARG\
-		# 		$VEP_HTSLIB_QSUB_ARG \
-		# 		$VEP_PERL5LIB_QSUB_ARG \
-		# 	-N P.04-VEP_TXGT"_"$SGE_SM_TAG"_"$PROJECT \
-		# 		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VEP_TXT.log" \
-		# 	-hold_jid O.01-CFTR2_VCF_DECOMPOSE_NORMALIZE"_"$SGE_SM_TAG"_"$PROJECT \
-		# 	$SCRIPT_DIR/P.04-VEP_TXT.sh \
-		# 		$VEP_CONTAINER \
-		# 		$CORE_PATH \
-		# 		$PROJECT \
-		# 		$SM_TAG \
-		# 		$VEP_REF_CACHE \
-		# 		$VEP_FASTA \
-		# 		$VEP_MAXENTSCAN_DIR \
-		# 		$VEP_SPLICEAI_SNV \
-		# 		$VEP_SPLICEAI_INDEL \
-		# 		$VEP_SPLICEAI_CUTOFF \
-		# 		$VEP_CONDEL_CONFIG_DIR \
-		# 		$VEP_DBSCSNV \
-		# 		$VEP_DBNSFP \
-		# 		$THREADS \
-		# 		$SAMPLE_SHEET \
-		# 		$SUBMIT_STAMP
-		# }
-
 	##################################
 	# RUN ANNOVAR ON CFTR REGION VCF #
 	##################################
@@ -1737,11 +1693,12 @@ done
 				$SUBMIT_STAMP
 		}
 
-	##############################################################################################
-	# COMBINE REFORMATED SPLICEAI AND CRYPTSPLICE OUTPUT WITH ANNOVAR FOCUSED ON CFTR EXONS, ETC #
-	##############################################################################################
+	#############################################################################################
+	# COMBINE REFORMATED SPLICEAI AND CRYPTSPLICE OUTPUT WITH ANNOVAR ###########################
+	# do a subset with variants in cftr2 exons plus flanking regions, cryptic splice sites, etc #
+	#############################################################################################
 
-		COMBINE_ANNOVAR_WITH_SPLICING_FOCUSED ()
+		COMBINE_ANNOVAR_WITH_SPLICING ()
 		{
 			echo \
 			qsub \
@@ -1788,13 +1745,9 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		REFORMAT_CRYPTSPLICE
 		echo sleep 0.1s
-		# RUN_VEP_TXT
-		# echo sleep 0.1s
 		RUN_ANNOVAR
 		echo sleep 0.1s
-		COMBINE_ANNOVAR_WITH_SPLICING_FULL
-		echo sleep 0.1s
-		COMBINE_ANNOVAR_WITH_SPLICING_FOCUSED
+		COMBINE_ANNOVAR_WITH_SPLICING
 		echo sleep 0.1s
 done
 
