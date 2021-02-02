@@ -47,9 +47,17 @@ START_COMBINE_ANNOTATIONS=`date '+%s'` # capture time process starts for wall cl
 			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_cryptsplice_prioritized_predictions_reformatted.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/SPLICEAI/$SM_TAG".spliceai.table.txt"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN_ANNOVAR_REPORT.txt"" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".combined_splicing_with_annovar"" \
 			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"$CFTR2_VCF_BASENAME".txt"" \
-			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_FOCUSED_VARIANT.txt""
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_FOCUSED_VARIANT.txt"" \
+		CMD=$CMD" &&" \
+			CMD=$CMD" awk 'BEGIN {print \"##$SM_TAG\"} {print \$0}'" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".combined_splicing_with_annovar.txt"" \
+			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar.txt"" \
+		CMD=$CMD" &&" \
+			CMD=$CMD" awk 'BEGIN {print \"##$SM_TAG\"} {print \$0}'" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".combined_splicing_with_annovar_variantsofinterest.txt"" \
+			CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS/$SM_TAG".combined_splicing_with_annovar_variantsofinterest.txt"" \
 
 	# inputs for R script
 		# 1. reformatted cryptsplice output: from Q.01-A.01-REFORMAT_CRYPTSPLICE.sh
