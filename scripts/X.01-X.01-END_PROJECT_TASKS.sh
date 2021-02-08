@@ -35,6 +35,7 @@
 		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
 	SUBMIT_STAMP=$7
 	SEND_TO=$8
+	THREADS=$9
 
 		TIMESTAMP=`date '+%F.%H-%M-%S'`
 
@@ -244,7 +245,7 @@
 				| singularity exec $ALIGNMENT_CONTAINER \
 					parallel \
 						--no-notice \
-						--jobs 90% \
+						-j $THREADS \
 						md5sum {} \
 			> $CORE_PATH/$PROJECT/REPORTS/"md5_output_files_"$PROJECT"_"$TIMESTAMP".txt"
 		}
@@ -257,12 +258,13 @@
 				$SCRIPT_DIR/../resources/bed_files/ \
 				$SCRIPT_DIR/../resources/CFTR2/ \
 				$SCRIPT_DIR/../resources/config_misc \
+				$SCRIPT_DIR/../resources/cryptsplice_data \
 				-type f \
 			| cut -f 2 \
 			| singularity exec $ALIGNMENT_CONTAINER \
 				parallel \
 					--no-notice \
-					--jobs 90% \
+					-j $THREADS \
 					md5sum {} \
 			> $CORE_PATH/$PROJECT/REPORTS/"md5_pipeline_resources_"$PROJECT"_"$TIMESTAMP".txt"
 		}
