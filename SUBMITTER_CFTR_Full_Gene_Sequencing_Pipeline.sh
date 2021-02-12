@@ -850,21 +850,21 @@ done
 				$SUBMIT_STAMP
 		}
 
-	###############################
-	# RUN VERIFYBAMID #############
-	# THIS RUNS OFF OF A BAM FILE #
-	###############################
+	################################################
+	# RUN VERIFYBAMID ##############################
+	# THIS RUNS OFF OF THE ORIGINAL FINAL BAM FILE #
+	################################################
 
-		RUN_VERIFYBAMID ()
+		RUN_VERIFYBAMID_ORIGINAL ()
 		{
 			echo \
 			qsub \
 				$QSUB_ARGS \
 				$STANDARD_QUEUE_QSUB_ARG \
-			-N H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
+			-N H.03-A.01-RUN_VERIFYBAMID_ORIGINAL"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_ORIGINAL.log" \
 			-hold_jid H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.03-A.01_VERIFYBAMID.sh \
+			$SCRIPT_DIR/H.03-A.01_VERIFYBAMID_ORIGINAL.sh \
 				$ALIGNMENT_CONTAINER \
 				$CORE_PATH \
 				$PROJECT \
@@ -872,6 +872,54 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
+
+		###############################################################################################
+		# DOWNSAMPLE BAM FILE #########################################################################
+		# THIS DOWNSAMPLES THE BAM FILE TO 300x MEAN TARGET COVERAGE IF THE COV IS >= 320x ##########
+		# OTHERWISE IS JUST MAKES A COPY OF THE BAM FILE ##############################################
+		# THIS IS SO THAT VERFIYBAMID CAN BE RERAN WHEN THE COVERAGE IS TOO HIGH FOR IT TO BE CORRECT #
+		###############################################################################################
+
+			DOWNSAMPLE_BAM ()
+			{
+				echo \
+				qsub \
+					$QSUB_ARGS \
+					$STANDARD_QUEUE_QSUB_ARG \
+				-N H.03-A.01-A.01-DOWNSAMPLE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOWNSAMPLE_BAM.log" \
+				-hold_jid H.03-A.01-RUN_VERIFYBAMID_ORIGINAL"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/H.03-A.01-A.01_DOWNSAMPLE_BAM.sh \
+					$ALIGNMENT_CONTAINER \
+					$CORE_PATH \
+					$PROJECT \
+					$SM_TAG \
+					$REF_GENOME \
+					$SAMPLE_SHEET \
+					$SUBMIT_STAMP
+			}
+
+		###########################################
+		# RUN VERIFYBAMID ON DOWNSAMPLED BAM FILE #
+		###########################################
+
+			RUN_VERIFYBAMID_DOWNSAMPLED ()
+			{
+				echo \
+				qsub \
+					$QSUB_ARGS \
+					$STANDARD_QUEUE_QSUB_ARG \
+				-N H.03-A.01-A.01-A.01-RUN_VERIFYBAMID_DOWNSAMPLED"_"$SGE_SM_TAG"_"$PROJECT \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_DOWNSAMPLED.log" \
+				-hold_jid H.03-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT,H.03-A.01-A.01-DOWNSAMPLE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/H.03-A.01-A.01-A.01_VERIFYBAMID_DOWNSAMPLED.sh \
+					$ALIGNMENT_CONTAINER \
+					$CORE_PATH \
+					$PROJECT \
+					$SM_TAG \
+					$SAMPLE_SHEET \
+					$SUBMIT_STAMP
+			}
 
 	#####################################################################################
 	# CREATE DEPTH OF COVERAGE for CFTR TARGET REGION ###################################
@@ -1357,7 +1405,11 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		echo sleep 0.1s
 		SELECT_VERIFYBAMID_VCF
 		echo sleep 0.1s
-		RUN_VERIFYBAMID
+		RUN_VERIFYBAMID_ORIGINAL
+		echo sleep 0.1s
+		DOWNSAMPLE_BAM
+		echo sleep 0.1s
+		RUN_VERIFYBAMID_DOWNSAMPLED
 		echo sleep 0.1s
 		DOC_CFTR
 		echo sleep 0.1s
@@ -1912,7 +1964,7 @@ qsub \
 -hold_jid \
 M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
 M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.03-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
+H.03-A.01-A.01-A.01-RUN_VERIFYBAMID_DOWNSAMPLED"_"$SGE_SM_TAG"_"$PROJECT,\
 H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
 H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
 R.01-COMBINE_ANNOVAR_WITH_SPLICING"_"$SGE_SM_TAG"_"$PROJECT,\
