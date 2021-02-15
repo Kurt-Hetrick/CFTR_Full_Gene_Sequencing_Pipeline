@@ -87,10 +87,9 @@ START_EXTRACT_CFTR2=`date '+%s'` # capture time process starts for wall clock tr
 			CMD=$CMD" else " \
 				CMD=$CMD" printf \"$SM_TAG NONE NA NA NA NA NA\" ; " \
 			CMD=$CMD" fi"
-		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" , \"HGVS_CDNA\" , \"CFTR2_DDL_CLASSIFICATION\" , " \
-			CMD=$CMD" \"CONSEQUENCE\" , \"GENOTYPE\" , \"POSITION\" , \"FILTER\"} " \
+		CMD=$CMD" | awk 'BEGIN {print \"SAMPLE\" \"\t\" \"HGVS_CDNA\" \"\t\" \"CFTR2_DDL_CLASSIFICATION\" " \
+			CMD=$CMD" \"\t\" \"CONSEQUENCE\" \"\t\" \"GENOTYPE\" \"\t\" \"POSITION\" \"\t\" \"FILTER\"} " \
 			CMD=$CMD" {print \$0}'" \
-		CMD=$CMD" | sed 's/ /\t/g'" \
 		CMD=$CMD" | sed 's/,/;/g'" \
 		CMD=$CMD" >| $CORE_PATH/$PROJECT/$SM_TAG/CFTR2/$SM_TAG".CFTR2_VARIANTS.txt""
 
