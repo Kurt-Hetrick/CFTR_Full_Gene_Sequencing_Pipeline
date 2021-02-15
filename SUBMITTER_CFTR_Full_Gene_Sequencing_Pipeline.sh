@@ -188,7 +188,7 @@
 
 	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
 
-	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-dev.simg"
+	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-20210126.simg"
 
 	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/r-cftr-3.4.4.1.simg"
 

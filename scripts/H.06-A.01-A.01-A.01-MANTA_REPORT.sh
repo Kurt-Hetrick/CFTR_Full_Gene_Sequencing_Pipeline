@@ -44,8 +44,14 @@ START_MANTA_REPORT=`date '+%s'` # capture time process starts for wall clock tra
 
 		CMD="awk 'BEGIN {OFS=\"\t\"} " \
 			CMD=$CMD" NR>1" \
-			CMD=$CMD"  {print \$1 , \$2-1 , \$3 , \$4 , \$5 , \$11 , \$10}'" \
+			CMD=$CMD" {split(\$8,ALT,/[\[\]:]/);" \
+			CMD=$CMD" if (\$4==\"BND\"&&ALT[2]==\"7\")" \
+			CMD=$CMD" print \$1 , \$2-1 , ALT[3] , \$4 , ALT[3]-(\$2-1) , \$11 , \$10 ;" \
+			CMD=$CMD" else print \$1 , \$2-1 , \$3 , \$4 , \$5 , \$11 , \$10}'" \
 		CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/MANTA/$SM_TAG".MANTA_TABLE.txt"" \
+		CMD=$CMD" | awk 'BEGIN {OFS=\"\t\"} " \
+			CMD=$CMD" { if (\$2>\$3) print \$1 , \$3 , \$2 , \$4 , \$5 , \$6 , \$7 ;" \
+			CMD=$CMD" else print \$0}'" \
 		CMD=$CMD" | singularity exec $ALIGNMENT_CONTAINER bedtools" \
 			CMD=$CMD" intersect" \
 				CMD=$CMD" -wao" \

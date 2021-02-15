@@ -121,6 +121,16 @@ END_CRAM=`date '+%s'` # capture time process starts for wall clock tracking purp
 					| sed 's/^ *//g' \
 					| awk '$2~/^LB:/ {print $1}'`)
 
+			# grab field number for PROGRAM_TAG
+
+				PG_FIELD=(`singularity exec $ALIGNMENT_CONTAINER samtools view -H \
+				$CORE_PATH/$PROJECT/$SM_TAG/CRAM/$SM_TAG".cram" \
+					| grep -m 1 ^@RG \
+					| sed 's/\t/\n/g' \
+					| cat -n \
+					| sed 's/^ *//g' \
+					| awk '$2~/^PG:/ {print $1}'`)
+
 			# Now grab the header and format
 				# breaking out the library name into its parts is assuming that the format is...
 				# fill in empty fields with NA thing (for loop in awk) is a lifesaver
@@ -133,9 +143,10 @@ END_CRAM=`date '+%s'` # capture time process starts for wall clock tracking purp
 						-v SM_FIELD="$SM_FIELD" \
 						-v PU_FIELD="$PU_FIELD" \
 						-v LB_FIELD="$LB_FIELD" \
-						'BEGIN {OFS="\t"} {split($SM_FIELD,SMtag,":"); split($PU_FIELD,PU,":"); split($LB_FIELD,Library,":"); split(Library[2],Library_Unit,"_"); \
+						-v PG_FIELD="$PG_FIELD" \
+						'BEGIN {OFS="\t"} {split($SM_FIELD,SMtag,":"); split($PU_FIELD,PU,":"); split($LB_FIELD,Library,":"); split(Library[2],Library_Unit,"_"); split($PG_FIELD,Pipeline_Version,":"); \
 						print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
-						Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
+						Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2),Pipeline_Version[2]}' \
 					| awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "NA" }; 1' \
 				>| $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/RG_HEADER/$SM_TAG".RG_HEADER.txt"
 		else
