@@ -56,7 +56,7 @@ START_MARK_DUPLICATES=`date '+%s'` # capture time process starts for wall clock 
 
 	# if any part of pipe fails set exit to non-zero
 
-		set -o pipefail
+		set -exo pipefail
 
 	# construct command line
 

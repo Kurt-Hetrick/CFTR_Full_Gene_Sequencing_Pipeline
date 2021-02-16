@@ -58,7 +58,12 @@ colnames(SpliceAI) <-paste("SAI",colnames(SpliceAI),sep="_")
 SpliceAI <- SpliceAI %>% rename(varname=SAI_varname)
 
 # #### Step 4: Merge CryptSplice and SpliceAI output ####
+if (dim(CryptSpliceclean)[1]==0) {
+CryptSpliceandSpliceAI<-SpliceAI
+CryptSpliceandSpliceAI$CS_consequence<-NA
+} else {
 CryptSpliceandSpliceAI<-merge(SpliceAI,CryptSpliceclean,by="varname",all=TRUE)
+}
 CryptSpliceandSpliceAI$PredictedBy[!is.na(CryptSpliceandSpliceAI$CS_consequence)]<-"CryptSplice"
 CryptSpliceandSpliceAI$PredictedBy[CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptSpliceandSpliceAI$SAI_DS_AL>=0.5|CryptSpliceandSpliceAI$SAI_DS_DG>=0.5|CryptSpliceandSpliceAI$SAI_DS_DL>=0.5]<-"SpliceAI"
 CryptSpliceandSpliceAI$PredictedBy[(CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptSpliceandSpliceAI$SAI_DS_AL>=0.5|CryptSpliceandSpliceAI$SAI_DS_DG>=0.5|CryptSpliceandSpliceAI$SAI_DS_DL>=0.5)&!is.na(CryptSpliceandSpliceAI$CS_consequence)]<-"SpliceAI and CryptSplice"
@@ -84,6 +89,10 @@ Annovar_withSplice_andCFTR2$InCFTR2Report[is.na(Annovar_withSplice_andCFTR2$InCF
 
 # #### Step 7: Merge with variants in CFTR bed file (within and flanking exons)
 CFTRexonandflanking<-read.delim(args[6], sep="\t")
+if (dim(CFTRexonandflanking)[1]==0) {
+Annovar_withSplice_andCFTR2_andexonflankinginfo<-Annovar_withSplice_andCFTR2
+Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking<-"NO"
+} else {
 CFTRexonandflanking$varname<-paste0(CFTRexonandflanking$CHR,":",CFTRexonandflanking$POS,"-",CFTRexonandflanking$REF,">",CFTRexonandflanking$ALT)
 CFTRexonandflanking$InCFTRexonorflanking<-"YES"
 CFTRexonandflanking$CHR<-NULL
@@ -93,6 +102,7 @@ CFTRexonandflanking$ALT<-NULL
 Annovar_withSplice_andCFTR2_andexonflankinginfo<-merge(Annovar_withSplice_andCFTR2,CFTRexonandflanking,by="varname",all.x=TRUE)
 Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking[is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking)]<-"NO"
 Annovar_withSplice_andCFTR2_andexonflankinginfo$varname<-NULL
+}
 
 # #### Step 8: Subset to variants of interest
 Variantsofinterest<-subset(Annovar_withSplice_andCFTR2_andexonflankinginfo,
