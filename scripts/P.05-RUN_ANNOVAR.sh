@@ -51,13 +51,16 @@ START_ANNOVAR=`date '+%s'` # capture time process starts for wall clock tracking
 		CMD="singularity exec $ANNOVAR_CONTAINER python" \
 			CMD=$CMD" /annovar_wrangler/annovar_wrangler.py" \
 			CMD=$CMD" --vcf_input_path $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN.vcf"" \
-			CMD=$CMD" --output_directory_path $CORE_PATH/$PROJECT/$SM_TAG/ANNOVAR/" \
+			CMD=$CMD" --output_directory_path $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_ANNOVAR/"" \
 			CMD=$CMD" --databases_file_path $ANNOVAR_DATABASE_FILE" \
 			CMD=$CMD" --ref_build_version $ANNOVAR_REF_BUILD" \
 			CMD=$CMD" --threads $THREADS" \
 			CMD=$CMD" --info_field_keys $ANNOVAR_INFO_FIELD_KEYS_SPACED" \
 			CMD=$CMD" --header_mappings $ANNOVAR_HEADER_MAPPINGS_SPACED" \
 			CMD=$CMD" --preserve_vcf_columns $ANNOVAR_VCF_COLUMNS_SPACED" \
+		CMD=$CMD" &&" \
+			CMD=$CMD" mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_ANNOVAR"/$SM_TAG".CFTR_REGION_VARIANT_ONLY.DandN_ANNOVAR_REPORT.txt"" \
+			CMD=$CMD" $CORE_PATH/$PROJECT/$SM_TAG/ANALYSIS"
 
 	# write command line to file and execute the command line
 
