@@ -101,8 +101,8 @@ CFTRexonandflanking$REF<-NULL
 CFTRexonandflanking$ALT<-NULL
 Annovar_withSplice_andCFTR2_andexonflankinginfo<-merge(Annovar_withSplice_andCFTR2,CFTRexonandflanking,by="varname",all.x=TRUE)
 Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking[is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking)]<-"NO"
-Annovar_withSplice_andCFTR2_andexonflankinginfo$varname<-NULL
 }
+Annovar_withSplice_andCFTR2_andexonflankinginfo$varname<-NULL
 
 # #### Step 8: Subset to variants of interest
 Variantsofinterest<-subset(Annovar_withSplice_andCFTR2_andexonflankinginfo,
