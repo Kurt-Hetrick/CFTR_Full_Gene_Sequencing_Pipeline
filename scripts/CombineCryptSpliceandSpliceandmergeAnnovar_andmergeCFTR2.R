@@ -41,7 +41,7 @@ CryptSpliceclean<-merge(CryptSplicesep_withcons_dup1,CryptSplicesep_withcons_dup
 
 # #### Step 3: Clean SpliceAI output ####
 # Load SpliceAI data
-SpliceAI<-read.delim(args[2],sep="\t")
+SpliceAI<-read.delim(args[2],sep="\t",colClasses = c("integer","integer","character","character","character","character","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric"))
 
 # Reformat identifier column so that it is chr:pos-ref>alt 
 SpliceAI$chrpos<-do.call(paste,c(SpliceAI[c("CHR","POS")],sep=":"))
@@ -70,7 +70,7 @@ CryptSpliceandSpliceAI$PredictedBy[(CryptSpliceandSpliceAI$SAI_DS_AG>=0.5|CryptS
 
 
 # #### Step 5: Merge with Annovar output ####
-Annovar <- read.delim(args[3], sep="\t")
+Annovar <- read.delim(args[3], sep="\t",colClasses = "character",header=TRUE)
 Annovar$varname<-paste0(Annovar$CHROM,":",Annovar$POS,"-",Annovar$REF,">",Annovar$ALT)
 Annovar_withSplice<-merge(Annovar,CryptSpliceandSpliceAI,by="varname",all=TRUE)
 
@@ -88,7 +88,7 @@ Annovar_withSplice_andCFTR2<-merge(Annovar_withSplice,CFTR2,by="varname",all.x=T
 Annovar_withSplice_andCFTR2$InCFTR2Report[is.na(Annovar_withSplice_andCFTR2$InCFTR2Report)]<-"NO"
 
 # #### Step 7: Merge with variants in CFTR bed file (within and flanking exons)
-CFTRexonandflanking<-read.delim(args[6], sep="\t")
+CFTRexonandflanking<-read.delim(args[6], colClasses = c("integer","integer","character","character"), sep="\t")
 if (dim(CFTRexonandflanking)[1]==0) {
 Annovar_withSplice_andCFTR2_andexonflankinginfo<-Annovar_withSplice_andCFTR2
 Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTRexonorflanking<-"NO"
@@ -110,21 +110,21 @@ Variantsofinterest<-subset(Annovar_withSplice_andCFTR2_andexonflankinginfo,
 	Annovar_withSplice_andCFTR2_andexonflankinginfo$InCFTR2Report=="YES"|
 	(!is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$PredictedBy))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_afr)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_afr))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_afr)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_amr)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_amr))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_amr)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_eas)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_eas))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_eas)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_nfe)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_nfe))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_nfe)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_fin)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_fin))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_fin)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_asj)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_asj))&
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_asj)))&
 	(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_oth)<0.01|
-	is.na(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_oth)))
+	is.na(as.numeric(Annovar_withSplice_andCFTR2_andexonflankinginfo$gnomad211_genome_AF_oth))))
 
 # #### Step 9: Save
 fullfilename=paste0(args[4],".txt")
