@@ -72,7 +72,7 @@
 
 				# grab field number for SM_TAG
 
-					SM_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+					SM_FIELD=(`singularity exec $ALIGNMENT_CONTAINER samtools view -H \
 					$CORE_PATH/$PROJECT/$SM_TAG/CRAM/$SM_TAG".cram" \
 						| grep -m 1 ^@RG \
 						| sed 's/\t/\n/g' \
@@ -82,7 +82,7 @@
 
 				# grab field number for PLATFORM_UNIT_TAG
 
-					PU_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+					PU_FIELD=(`singularity exec $ALIGNMENT_CONTAINER samtools view -H \
 					$CORE_PATH/$PROJECT/$SM_TAG/CRAM/$SM_TAG".cram" \
 						| grep -m 1 ^@RG \
 						| sed 's/\t/\n/g' \
@@ -92,7 +92,7 @@
 
 				# grab field number for LIBRARY_TAG
 
-					LB_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+					LB_FIELD=(`singularity exec $ALIGNMENT_CONTAINER samtools view -H \
 					$CORE_PATH/$PROJECT/$SM_TAG/CRAM/$SM_TAG".cram" \
 						| grep -m 1 ^@RG \
 						| sed 's/\t/\n/g' \
@@ -115,7 +115,7 @@
 					# fill in empty fields with NA thing (for loop in awk) is a lifesaver
 					# https://unix.stackexchange.com/questions/53448/replacing-missing-value-blank-space-with-zero
 
-					$SAMTOOLS_DIR/samtools view -H \
+					singularity exec $ALIGNMENT_CONTAINER samtools view -H \
 					$CORE_PATH/$PROJECT/$SM_TAG/CRAM/$SM_TAG".cram" \
 						| grep ^@RG \
 						| awk \
