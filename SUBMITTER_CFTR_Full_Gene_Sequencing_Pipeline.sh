@@ -120,18 +120,18 @@
 			# When you install the API modules for VEP in a non-default location (which is $HOME),
 			# you have to set the $PERL5LIB variable to the new location.
 
-				VEP_PERL5LIB_QSUB_ARG="-v PERL5LIB=/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
+				VEP_PERL5LIB_QSUB_ARG="-v PERL5LIB=/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
 
 			# the default when running the vep INSTALL.pl script installs htslib.
 			# so you are supposed to add that to the path variable.
 
-				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
+				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
 
 #####################
 # PIPELINE PROGRAMS #
 #####################
 
-	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/ddl_ce_control_align-0.0.4.simg"
+	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/ddl_ce_control_align-0.0.4.simg"
 		# contains the following software and is on Ubuntu 16.04.5 LTS
 			# gatk 4.0.11.0 (base image). also contains the following.
 				# Python 3.6.2 :: Continuum Analytics, Inc.
@@ -163,34 +163,34 @@
 				# bcftools 1.10.2
 				# parallel 20161222
 
-	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/gatk3-3.7-0.simg"
+	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.7-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 			# used for generating the depth of coverage reports.
 				# comes with R 3.1.1 with appropriate packages needed to create gatk pdf output
 				# also comes with some version of java 1.8
 				# jar file is /usr/GenomeAnalysisTK.jar
 
-	GATK_3_5_0_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/gatk3-3.5-0.simg"
+	GATK_3_5_0_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.5-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 
-	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/manta-1.6.0.0.simg"
+	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/manta-1.6.0.0.simg"
 		# singularity 2 creates a simg file (this is what I used)
 		# singularity 3 (this is what the cgc nodes have) creates a .sif file
 
-	SPLICEAI_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/spliceai-1.3.1.1.simg"
+	SPLICEAI_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/spliceai-1.3.1.1.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/spliceai:1.3.1.1
 			# has to run an servers where the CPU supports AVX
 			# the only ones that don't are the c6100s (prod.q,rnd.q,c6100-4,c6100-8)
 
-	VEP_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vep-102.0.simg"
+	VEP_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vep-102.0.simg"
 
-	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/cryptsplice-1.simg"
+	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/cryptsplice-1.simg"
 
-	VT_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/vt-0.5772.ca352e2c.0.simg"
+	VT_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vt-0.5772.ca352e2c.0.simg"
 
-	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/annovarwrangler-20210126.simg"
+	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/annovarwrangler-20210126.simg"
 
-	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/containers/r-cftr-3.4.4.1.simg"
+	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/r-cftr-3.4.4.1.simg"
 
 	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT="$SCRIPT_DIR/CombineCryptSpliceandSpliceandmergeAnnovar_andmergeCFTR2.R"
 
@@ -198,30 +198,34 @@
 # PIPELINE FILES #
 ##################
 
-	GENE_LIST="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/RefSeqGene.GRCh37.rCRS.MT.bed"
-	CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_ANNOTATED.bed"
-	BARCODE_SNPS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTRFullGene_BarcodeSNPs.bed"
-	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/Full_Chr7_GRCh37.bed.gz"
-	CFTR_EXONS="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CFTR_EXONS.bed"
-	CFTR_FOCUSED="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/bed_files/CF_CFTR.NGS1.v1.140604.bed"
+	GENE_LIST="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/RefSeqGene.GRCh37.rCRS.MT.bed"
+	CFTR_BED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_ANNOTATED.bed"
+	BARCODE_SNPS="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTRFullGene_BarcodeSNPs.bed"
+	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/Full_Chr7_GRCh37.bed.gz"
+	CFTR_EXONS="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_EXONS.bed"
 
-	VERIFY_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
+	# THE BELOW USED TO BE NAMED CF_CFTR.NGS1.v1.140604.bed.
+	# IT IS A BED FILE THAT CONTAINS EXON COORDINATES AND A COUPLE OF INTRONIC POSITIONS.
+	CFTR_FOCUSED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CF_CFTR_FEATURES_OF_INTEREST.bed"
 
-	MANTA_CONFIG="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/configManta_CFTR.py.ini"
+	VERIFY_VCF="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf.gz"
 
-	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/vep_data"
-	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/cryptsplice_data"
+	MANTA_CONFIG="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/config_misc/configManta_CFTR.py.ini"
+
+	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
+
+	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/cryptsplice_data"
 
 	# HGVS CDNA SUBMITTED TO VEP
-		CFTR2_VCF="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.vep.DaN.vcf.gz"
+		CFTR2_VCF="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.DaN.vcf.gz"
 
-		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.vep.CFTR_ONLY.sort.no_header.txt"
+		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.CFTR_ONLY.sort.no_header.txt"
 
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
-		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/CFTR2/CFTR2_plusDDL.sorted_cdna.no_header.txt"
+		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.sorted_cdna.no_header.txt"
 
 	# ANNOVAR PARAMETERS AND INPUTS
-		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/CFTR_Full_Gene_Sequencing_Pipeline/resources/config_misc/CFTR.final.csv"
+		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/ANNOVAR/CFTR.final.csv"
 		ANNOVAR_REF_BUILD="hg19"
 
 		ANNOVAR_INFO_FIELD_KEYS="VariantType," \

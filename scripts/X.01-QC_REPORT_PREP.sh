@@ -505,7 +505,7 @@
 		elif [[ -f $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/$SM_TAG".base_distribution_by_cycle_metrics.txt" && $BASE_DISTIBUTION_BY_CYCLE_ROW_COUNT -lt 8 ]]
 			then
 				echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
-				| datamash transpose \
+				| singularity exec $ALIGNMENT_CONTAINER datamash transpose \
 				>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 		else
 			sed '/^$/d' $CORE_PATH/$PROJECT/$SM_TAG/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/$SM_TAG".base_distribution_by_cycle_metrics.txt" \
