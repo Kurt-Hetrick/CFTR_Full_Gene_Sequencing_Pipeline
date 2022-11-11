@@ -40,6 +40,10 @@
 # CORE VARIABLES #
 ##################
 
+	# PIPELINE FILE REPOSITORY DIRECTORY
+
+		GIT_LFS_DIR="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES"
+
 	# GVCF PAD. CURRENTLY KEEPING THIS AS A STATIC VARIABLE
 
 		GVCF_PAD="250"
@@ -78,6 +82,14 @@
 	# SUBMITTER_ID
 
 		SUBMITTER_ID=`whoami`
+
+	# grab submitter's name
+
+		PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
+	# grab email addy
+
+		SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
 
 	# bind the host file system /mnt to the singularity container. in case I use it in the submitter.
 
@@ -120,18 +132,134 @@
 			# When you install the API modules for VEP in a non-default location (which is $HOME),
 			# you have to set the $PERL5LIB variable to the new location.
 
-				VEP_PERL5LIB_QSUB_ARG="-v PERL5LIB=/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
+				VEP_PERL5LIB_QSUB_ARG="-v PERL5LIB=${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
 
 			# the default when running the vep INSTALL.pl script installs htslib.
 			# so you are supposed to add that to the path variable.
 
-				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
+				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
+
+#################################################################################################################
+##### VALIDATE THAT THERE ARE NO UNTRACKED, UNCOMMITTED AND/OR UNPUSHED CHANGES TO PIPELINE FILE REPOSITORY #####
+##### ABORT SUBMISSION IF THERE ARE #############################################################################
+#################################################################################################################
+
+	#######################################################################################
+	# VALIDATE THAT THERE ARE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE FILE REPOSITORY #
+	#######################################################################################
+
+		# DO A SIMPLE STATUS CHECK THAT THERE ARE NO CHANGES AND STORE AS VARIABLE
+
+			LOCAL_CHANGES=$(singularity \
+				exec \
+					-B ${GIT_LFS_DIR}:/opt \
+				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+					status \
+						--porcelain)
+
+		# FUNCTION FOR FULL STATUS CHECK IN THE EVENT THAT THERE ARE UNTRACKED AND/OR UNCOMMITTED CHANGES
+
+			RUN_GIT_STATUS ()
+			{
+				singularity \
+				exec \
+					-B ${GIT_LFS_DIR}:/opt \
+				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+					status
+			}
+
+	# IF THERE ARE UNTRACKED AND/OR UNCOMMITED CHANGES PRINT STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# EXIT STATUS = 1
+
+		if
+			[ -n "${LOCAL_CHANGES}" ]
+		then
+			# print message to screen
+
+				printf "echo\n"
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES.\n"
+				printf "echo\n"
+
+				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt status"
+
+			# send message to teams
+
+				RUN_GIT_STATUS \
+					| mail \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES." \
+						${SEND_TO}
+			exit 1
+		fi
+
+	################################################################################################
+	# VALIDATE THAT THERE ARE NO COMMITS IN THE LOCAL REPO THAT HAVE NOT BEEN PUSHED TO THE REMOTE #
+	################################################################################################
+
+		# GRAB LOCAL BRANCH AND STORE AS A VARIABLE FOR MESSAGING
+
+			CURRENT_LOCAL_BRANCH=$(singularity \
+				exec \
+					-B ${GIT_LFS_DIR}:/opt \
+				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+					branch \
+			| awk '$1=="*" {print $2}')
+
+		# CHECK THAT THERE ARE NO DIFFERENCES BETWEEN REMOTE AND LOCAL BRANCH. STORE AS A VARIABLE.
+
+			CHECK_LOCAL_VS_REMOTE=$(singularity \
+				exec \
+					-B ${GIT_LFS_DIR}:/opt \
+				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+					diff \
+					origin/${CURRENT_LOCAL_BRANCH})
+
+		# FUNCTION TO RUN GIT DIFF FOR TEAMS MESSAGING IN THE EVENT THAT THERE ARE DIFFERENCES BETWEEEN LOCAL AND REMOTE
+
+			RUN_GIT_DIFF_LOCAL_VS_REMOTE ()
+			{
+				singularity \
+				exec \
+					-B ${GIT_LFS_DIR}:/opt \
+				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+					diff \
+					--name-status \
+					origin/${CURRENT_LOCAL_BRANCH}
+			}
+
+	# IF THERE ARE LOCAL COMMITTED CHANGES THAT HAVE NOT BEEN PUSHED TO REMOVE
+	# PRINT STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# EXIT STATUS = 1
+
+		if
+			[ -n "${CHECK_LOCAL_VS_REMOTE}" ]
+		then
+			# print message to screen
+
+				printf "echo\n"
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE.\n"
+				printf "echo\n"
+
+				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt diff --name-status origin/${CURRENT_LOCAL_BRANCH}"
+
+			# send message to teams
+
+				RUN_GIT_DIFF_LOCAL_VS_REMOTE \
+					| mail \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE." \
+						${SEND_TO}
+			exit 1
+		fi
 
 #####################
 # PIPELINE PROGRAMS #
 #####################
 
-	ALIGNMENT_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/ddl_ce_control_align-0.0.4.simg"
+	ALIGNMENT_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/ddl_ce_control_align-0.0.4.simg"
 		# contains the following software and is on Ubuntu 16.04.5 LTS
 			# gatk 4.0.11.0 (base image). also contains the following.
 				# Python 3.6.2 :: Continuum Analytics, Inc.
@@ -163,34 +291,34 @@
 				# bcftools 1.10.2
 				# parallel 20161222
 
-	GATK_3_7_0_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.7-0.simg"
+	GATK_3_7_0_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.7-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 			# used for generating the depth of coverage reports.
 				# comes with R 3.1.1 with appropriate packages needed to create gatk pdf output
 				# also comes with some version of java 1.8
 				# jar file is /usr/GenomeAnalysisTK.jar
 
-	GATK_3_5_0_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.5-0.simg"
+	GATK_3_5_0_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/gatk3-3.5-0.simg"
 		# singularity pull docker://broadinstitute/gatk3:3.7-0
 
-	MANTA_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/manta-1.6.0.0.simg"
+	MANTA_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/manta-1.6.0.0.simg"
 		# singularity 2 creates a simg file (this is what I used)
 		# singularity 3 (this is what the cgc nodes have) creates a .sif file
 
-	SPLICEAI_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/spliceai-1.3.1.1.simg"
+	SPLICEAI_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/spliceai-1.3.1.1.simg"
 		# singularity pull docker://ubuntudocker.jhgenomics.jhu.edu:443/illumina/spliceai:1.3.1.1
 			# has to run an servers where the CPU supports AVX
 			# the only ones that don't are the c6100s (prod.q,rnd.q,c6100-4,c6100-8)
 
-	VEP_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vep-102.0.simg"
+	VEP_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vep-102.0.simg"
 
-	CRYPTSPLICE_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/cryptsplice-1.simg"
+	CRYPTSPLICE_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/cryptsplice-1.simg"
 
-	VT_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vt-0.5772.ca352e2c.0.simg"
+	VT_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/vt-0.5772.ca352e2c.0.simg"
 
-	ANNOVAR_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/annovarwrangler-20210126.simg"
+	ANNOVAR_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/annovarwrangler-20210126.simg"
 
-	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/r-cftr-3.4.4.1.simg"
+	COMBINE_ANNOVAR_WITH_SPLICING_R_CONTAINER="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/containers/r-cftr-3.4.4.1.simg"
 
 	COMBINE_ANNOVAR_WITH_SPLICING_R_SCRIPT="$SCRIPT_DIR/CombineCryptSpliceandSpliceandmergeAnnovar_andmergeCFTR2.R"
 
@@ -198,34 +326,34 @@
 # PIPELINE FILES #
 ##################
 
-	GENE_LIST="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/RefSeqGene.GRCh37.rCRS.MT.bed"
-	CFTR_BED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_ANNOTATED.bed"
-	BARCODE_SNPS="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTRFullGene_BarcodeSNPs.bed"
-	MANTA_CFTR_BED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/Full_Chr7_GRCh37.bed.gz"
-	CFTR_EXONS="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_EXONS.bed"
+	GENE_LIST="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/RefSeqGene.GRCh37.rCRS.MT.bed"
+	CFTR_BED="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_ANNOTATED.bed"
+	BARCODE_SNPS="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTRFullGene_BarcodeSNPs.bed"
+	MANTA_CFTR_BED="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/Full_Chr7_GRCh37.bed.gz"
+	CFTR_EXONS="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CFTR_EXONS.bed"
 
 	# THE BELOW USED TO BE NAMED CF_CFTR.NGS1.v1.140604.bed.
 	# IT IS A BED FILE THAT CONTAINS EXON COORDINATES AND A COUPLE OF INTRONIC POSITIONS.
-	CFTR_FOCUSED="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CF_CFTR_FEATURES_OF_INTEREST.bed"
+	CFTR_FOCUSED="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/bed_files/CF_CFTR_FEATURES_OF_INTEREST.bed"
 
-	VERIFY_VCF="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf.gz"
+	VERIFY_VCF="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf.gz"
 
-	MANTA_CONFIG="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/config_misc/configManta_CFTR.py.ini"
+	MANTA_CONFIG="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/config_misc/configManta_CFTR.py.ini"
 
-	VEP_REF_CACHE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
+	VEP_REF_CACHE="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
 
-	CRYPTSPLICE_DATA="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/cryptsplice_data"
+	CRYPTSPLICE_DATA="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/cryptsplice_data"
 
 	# HGVS CDNA SUBMITTED TO VEP
-		CFTR2_VCF="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.DaN.vcf.gz"
+		CFTR2_VCF="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.DaN.vcf.gz"
 
-		CFTR2_VEP_TABLE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.CFTR_ONLY.sort.no_header.txt"
+		CFTR2_VEP_TABLE="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.vep.CFTR_ONLY.sort.no_header.txt"
 
 	# EXCEL FILE CONVERTED TO TAB DELIMITED TEXT WITH THE HEADER REMOVE AND SORTED BY HGVS CDNA
-		CFTR2_RAW_TABLE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.sorted_cdna.no_header.txt"
+		CFTR2_RAW_TABLE="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/CFTR2/CFTR2_plusDDL.sorted_cdna.no_header.txt"
 
 	# ANNOVAR PARAMETERS AND INPUTS
-		ANNOVAR_DATABASE_FILE="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/ANNOVAR/CFTR.final.csv"
+		ANNOVAR_DATABASE_FILE="${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/ANNOVAR/CFTR.final.csv"
 		ANNOVAR_REF_BUILD="hg19"
 
 		ANNOVAR_INFO_FIELD_KEYS="VariantType," \
@@ -2013,14 +2141,6 @@ done
 #############################
 ##### END PROJECT TASKS #####
 #############################
-
-# grab email addy
-
-	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
-
-# grab submitter's name
-
-	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
 
 # build hold id for qc report prep per sample, per project
 
