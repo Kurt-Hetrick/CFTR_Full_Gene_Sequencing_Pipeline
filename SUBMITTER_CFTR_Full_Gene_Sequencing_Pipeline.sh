@@ -4,29 +4,56 @@
 
 	SAMPLE_SHEET=$1
 
-	PRIORITY=$2 # optional. how high you want the tasks to have when submitting.
-		# if no 2nd argument present then the default is -9.
+	VALIDATE_GIT_LFS=$2 # optional. if you want to validate whether there are any changes to the git lfs directory
+		# can turn it off, if testing changes before committing and pushing to git repo
+		# if null, then value is "y"
+		# if not null, then value HAS to be either "y" or "n" or program will exit with message
 
-			if [[ ! $PRIORITY ]]
-				then
+			if
+				[[ ! ${VALIDATE_GIT_LFS} ]]
+			then
+				VALIDATE_GIT_LFS="y"
+			elif
+				# if VALIDATE_GIT_LFS is not null AND not "y" or "n" then exit and print message to screen
+				[[ -n ${VALIDATE_GIT_LFS} ]] && ! ([[ ${VALIDATE_GIT_LFS} = "y" ]] || [[ ${VALIDATE_GIT_LFS} = "n" ]])
+			then
+				printf "echo\n"
+				printf "echo FATAL ERROR: IF SETTING 3rd ARGUMENT \(WHETHER TO VALIDATE THE GIT LFS DIRECTORY\)\n"
+				printf "echo THEN IT MUST BE SET AS \(y\) FOR YES OR \(n\) FOR NO. DO NO USE THE PARENTHESES\n"
+				printf "echo SUBMISSION ABORTED\n"
+				printf "echo\n"
+				exit 1
+			else
+				VALIDATE_GIT_LFS=${VALIDATE_GIT_LFS}
+			fi
+
+	PRIORITY=$3 # optional. how high you want the tasks to have when submitting.
+		# if you want to set this then you need to set the 2nd argument as well (even to the default)
+		# if no 3rd argument present then the default is -9.
+
+			if
+				[[ ! ${PRIORITY} ]]
+			then
 				PRIORITY="-9"
 			fi
 
-	QUEUE_LIST=$3 # optional. the queues that you want to submit to.
-		# if you want to set this then you need to set the 2nd argument as well (even to the default)
-		# if no 3rd argument present then the default is cgc.q
+	QUEUE_LIST=$4 # optional. the queues that you want to submit to.
+		# if you want to set this then you need to set the 2nd and 3rd argument as well (even to the default)
+		# if no 4th argument present then the default is cgc.q
 
-			if [[ ! $QUEUE_LIST ]]
-				then
+			if
+				[[ ! ${QUEUE_LIST} ]]
+			then
 				QUEUE_LIST="cgc.q"
 			fi
 
-	THREADS=$4 # optional. how many cpu processors you want to use for programs that are multi-threaded
-		# if you want to set this then you need to set the 3rd argument as well (even to the default)
-		# if no 4th argument present then the default is 6
+	THREADS=$5 # optional. how many cpu processors you want to use for programs that are multi-threaded
+		# if you want to set this then you need to set the 2nd, 3rd and 4th argument as well (even to the default)
+		# if no 5th argument present then the default is 6
 
-			if [[ ! $THREADS ]]
-				then
+			if
+				[[ ! ${THREADS} ]]
+			then
 				THREADS="6"
 			fi
 
@@ -43,6 +70,10 @@
 	# PIPELINE FILE REPOSITORY DIRECTORY
 
 		GIT_LFS_DIR="/mnt/clinical/ddl/NGS/NGS_PIPELINE_RESOURCES"
+
+		# dev repository. just here for convenience for me so I can comment it in and out
+
+			# GIT_LFS_DIR="/mnt/clinical/ddl/NGS/Kurt_Test/GIT_LFS"
 
 	# GVCF PAD. CURRENTLY KEEPING THIS AS A STATIC VARIABLE
 
@@ -144,6 +175,18 @@
 ##### ABORT SUBMISSION IF THERE ARE #############################################################################
 #################################################################################################################
 
+		if
+			[[ ${VALIDATE_GIT_LFS} = "y" ]]
+		then
+			printf "echo\n"
+			printf "echo VALIDATING THAT THERE ARE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE FILE REPOSITORY...\n"
+			printf "echo\n"
+		else
+			printf "echo\n"
+			printf "echo SKIPPING VALIDATIONS FOR GIT LFS BACKED PIPELINE FILE REPOSITORY...\n"
+			printf "echo\n"
+		fi
+
 	#######################################################################################
 	# VALIDATE THAT THERE ARE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE FILE REPOSITORY #
 	#######################################################################################
@@ -170,15 +213,15 @@
 					status
 			}
 
-	# IF THERE ARE UNTRACKED AND/OR UNCOMMITED CHANGES PRINT STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# IF THERE ARE UNTRACKED AND/OR UNCOMMITED CHANGES AND VALIDATE_GIT_LFS IS SET TO "y"
+	# PRINT git STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
 	# EXIT STATUS = 1
 
 		if
-			[ -n "${LOCAL_CHANGES}" ]
+			[[ -n ${LOCAL_CHANGES} && ${VALIDATE_GIT_LFS} = "y" ]]
 		then
 			# print message to screen
 
-				printf "echo\n"
 				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES.\n"
 				printf "echo\n"
 
@@ -196,6 +239,15 @@
 	################################################################################################
 	# VALIDATE THAT THERE ARE NO COMMITS IN THE LOCAL REPO THAT HAVE NOT BEEN PUSHED TO THE REMOTE #
 	################################################################################################
+
+		if
+			[[ ${VALIDATE_GIT_LFS} = "y" ]]
+		then
+			printf "echo COMPLETED: THERE WERE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE FILE REPOSITORY\n"
+			printf "echo\n"
+			printf "echo NOW VALIDATING THAT THERE ARE NO DIFFERENCES BETWEEN REMOTE AND LOCAL REPOSITORIES FOR THE PIPELINE FILE REPOSITORY...\n"
+			printf "echo\n"
+		fi
 
 		# GRAB LOCAL BRANCH AND STORE AS A VARIABLE FOR MESSAGING
 
@@ -231,17 +283,20 @@
 					origin/${CURRENT_LOCAL_BRANCH}
 			}
 
-	# IF THERE ARE LOCAL COMMITTED CHANGES THAT HAVE NOT BEEN PUSHED TO REMOVE
-	# PRINT STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# IF THERE ARE LOCAL COMMITTED CHANGES THAT HAVE NOT BEEN PUSHED TO REMOTE AND VALIDATE_GIT_LFS IS SET TO "y"
+	# PRINT git diff MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
 	# EXIT STATUS = 1
 
 		if
-			[ -n "${CHECK_LOCAL_VS_REMOTE}" ]
+			[[ -n ${CHECK_LOCAL_VS_REMOTE} && ${VALIDATE_GIT_LFS} = "y" ]]
 		then
 			# print message to screen
 
-				printf "echo\n"
 				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE.\n"
+				printf "echo\n"
+				printf "echo BELOW ARE THE MODIFIED AND/OR NEW FILES THAT HAVE NOT BEEN PUSHED TO THE REMOTE REPOSITORY\n"
+				printf "echo \(M\): file has been modified but not commited to the remote repository\n"
+				printf "echo \(A\): new file has been added but not commited to the remote repository\n"
 				printf "echo\n"
 
 				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt diff --name-status origin/${CURRENT_LOCAL_BRANCH}"
@@ -253,6 +308,24 @@
 						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE." \
 						${SEND_TO}
 			exit 1
+		fi
+
+	###########################################################################################################
+	# IF VALIDATING GIT LFS REPOSITORY AND IF THERE WERE NO ISSUES THAN SAY SO ON SCREEN ######################
+	# ALSO ALERT SUBMITTER THAT NOT ALL FILES CAN BE VALIDATED HERE BUT IF THERE WERE ISSUES WITH OTHER FILES #
+	# THAT NOTIFICATION WILL COME WITH THE NOTIFICATION WHEN THE PIPELINE HAS COMPLETED PROCESSING ############
+	###########################################################################################################
+
+		if
+			[[ ${VALIDATE_GIT_LFS} = "y" ]]
+		then
+			printf "echo COMPLETED: THERE WERE NO ISSUES WITH PIPELINE FILE REPOSITORY FOR FILES TRACKED BY GIT LFS.\n"
+			printf "echo\n"
+			printf "echo IF THERE ARE ISSUES WITH FILES THAT ARE TOO BIG TO BE TRACKED BY GIT LFS,\n"
+			printf "echo THEN A WARNING WILL BE ISSED WITH DETAILS IN THE PIPELINE COMPLETED TEAMS NOTIFICATION SUMMARY.\n"
+			printf "echo\n"
+			printf "echo NOW CONTINUING WITH THE PIPELINE SUBMISSION\n"
+			printf "echo\n"
 		fi
 
 #####################
@@ -529,8 +602,8 @@ for SAMPLE in $(awk 1 $SAMPLE_SHEET \
 		| awk 'BEGIN {FS=","} NR>1 {print $8}' \
 		| sort \
 		| uniq );
-	do
-		SETUP_PROJECT
+do
+	SETUP_PROJECT
 done
 
 ################################
