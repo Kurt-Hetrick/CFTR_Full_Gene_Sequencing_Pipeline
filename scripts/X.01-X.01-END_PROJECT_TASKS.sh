@@ -68,6 +68,7 @@
 			"HYB_ROW",\
 			"HYB_COLUMN",\
 			"PIPELINE_VERSION",\
+			"PIPELINE_FILES_VERSION",\
 			"SEX",\
 			"X_HET_COUNT",\
 			"Y_COUNT",\

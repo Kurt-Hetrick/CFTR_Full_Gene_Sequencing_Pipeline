@@ -92,9 +92,27 @@
 
 		NOVASEQ_REPO="/mnt/instrument_files/novaseq"
 
-	# used for tracking in the read group header of the cram file
+	# grab the git short hash for the pipeline scripts
+	# to be used for tracking in the read group header of the cram file and written to the QC report
 
-		PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
+		PIPELINE_VERSION=$(git \
+							--git-dir=${SCRIPT_DIR}/../.git \
+							--work-tree=${SCRIPT_DIR}/.. \
+							log \
+							--pretty=format:'%h' \
+							-n 1)
+
+	# grab the git short hash for the pipeline files used
+	# to be written to the QC report
+
+		GIT_LFS_VERSION=$(singularity \
+							exec \
+						-B ${GIT_LFS_DIR}:/opt \
+						${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
+						-C /opt \
+							log \
+							--pretty=format:'%h' \
+							-n 1)
 
 	# load gcc for programs like verifyBamID
 	## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
@@ -2162,26 +2180,27 @@ QC_REPORT_PREP ()
 {
 echo \
 qsub \
-	$QSUB_ARGS \
-	$STANDARD_QUEUE_QSUB_ARG \
--N X.01_QC_REPORT_PREP"_"$SGE_SM_TAG"_"$PROJECT \
-	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-QC_REPORT_PREP.log" \
+	${QSUB_ARGS} \
+	${STANDARD_QUEUE_QSUB_ARG} \
+-N X.01_QC_REPORT_PREP_${SGE_SM_TAG}_${PROJECT} \
+	-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-QC_REPORT_PREP.log \
 -hold_jid \
-M.01-A.01_VCF_METRICS_CFTR_TARGET"_"$SGE_SM_TAG"_"$PROJECT,\
-M.02_EXTRACT_BARCODE_SNPS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.03-A.01-A.01-A.01-RUN_VERIFYBAMID_DOWNSAMPLED"_"$SGE_SM_TAG"_"$PROJECT,\
-H.02-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
-H.01-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
-R.01-COMBINE_ANNOVAR_WITH_SPLICING"_"$SGE_SM_TAG"_"$PROJECT,\
-Q.02-CREATE_CFTR2_REPORT"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
-	$ALIGNMENT_CONTAINER \
-	$CORE_PATH \
-	$PROJECT \
-	$SM_TAG \
-	$EXPECTED_SEX \
-	$SAMPLE_SHEET \
-	$SUBMIT_STAMP
+M.01-A.01_VCF_METRICS_CFTR_TARGET_${SGE_SM_TAG}_${PROJECT},\
+M.02_EXTRACT_BARCODE_SNPS_${SGE_SM_TAG}_${PROJECT},\
+H.03-A.01-A.01-A.01-RUN_VERIFYBAMID_DOWNSAMPLED_${SGE_SM_TAG}_${PROJECT},\
+H.02-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
+H.01-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
+R.01-COMBINE_ANNOVAR_WITH_SPLICING_${SGE_SM_TAG}_${PROJECT},\
+Q.02-CREATE_CFTR2_REPORT_${SGE_SM_TAG}_${PROJECT} \
+${SCRIPT_DIR}/X.01-QC_REPORT_PREP.sh \
+	${ALIGNMENT_CONTAINER} \
+	${CORE_PATH} \
+	${PROJECT} \
+	${SM_TAG} \
+	${EXPECTED_SEX} \
+	${GIT_LFS_VERSION} \
+	${SAMPLE_SHEET} \
+	${SUBMIT_STAMP}
 }
 
 ################################################
