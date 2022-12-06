@@ -624,6 +624,45 @@ do
 	SETUP_PROJECT
 done
 
+#############################################################################################
+##### RUN md5sum ON PIPELINE RESOURCE FILES AND VALIDATE THAT THEY HAVEN'T BEEN CHANGED #####
+##### THESE ARE FOR FILES THAT ARE TOO LARGE FOR GIT LFS ####################################
+##### A NOTIFICATION IS SENT IF THERE ARE DIFFERENCES IMMEDIATELY AFTER CHECK IS DONE #######
+##### AND AGAIN AFTER PIPELINE FINISHES #####################################################
+#############################################################################################
+
+	# md5sum ON PIPELINE RESOURCE FILES AND VALIDATE THAT THEY HAVEN'T BEEN CHANGED FOR EACH PROJECT
+
+		MD5_VALIDATION ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+				${STANDARD_QUEUE_QSUB_ARG} \
+			-N A.00_MD5_VALIDATION_${PROJECT} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${PROJECT}-MD5_VALIDATION.log \
+			${SCRIPT_DIR}/A.00-MD5_VALIDATION.sh \
+				${ALIGNMENT_CONTAINER} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${GIT_LFS_DIR} \
+				${THREADS} \
+				${SEND_TO} \
+				${SUBMIT_STAMP}
+		}
+
+	# RUN MD5 VALIDATION FOR EACH PROJECT IN SAMPLE SHEET
+
+		for PROJECT in \
+			$(awk 1 ${SAMPLE_SHEET} \
+				| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+				| awk 'BEGIN {FS=","} NR>1 {print $1}' \
+				| sort \
+				| uniq);
+		do
+			MD5_VALIDATION
+		done
+
 ################################
 ##### CRAM FILE GENERATION #####
 ###############################################################################################
@@ -2262,7 +2301,7 @@ done
 			$STANDARD_QUEUE_QSUB_ARG \
 		-N X.01-X.01_END_PROJECT_TASKS"_"$PROJECT \
 			-o $CORE_PATH/$PROJECT/LOGS/$PROJECT"-END_PROJECT_TASKS.log" \
-		$HOLD_ID_PATH \
+		${HOLD_ID_PATH}A.00_MD5_VALIDATION_${PROJECT} \
 		$SCRIPT_DIR/X.01-X.01-END_PROJECT_TASKS.sh \
 			$ALIGNMENT_CONTAINER \
 			$CORE_PATH \
