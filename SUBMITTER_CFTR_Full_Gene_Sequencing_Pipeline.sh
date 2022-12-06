@@ -18,7 +18,7 @@
 				[[ -n ${VALIDATE_GIT_LFS} ]] && ! ([[ ${VALIDATE_GIT_LFS} = "y" ]] || [[ ${VALIDATE_GIT_LFS} = "n" ]])
 			then
 				printf "echo\n"
-				printf "echo FATAL ERROR: IF SETTING 3rd ARGUMENT \(WHETHER TO VALIDATE THE GIT LFS DIRECTORY\)\n"
+				printf "echo FATAL ERROR: IF SETTING 2nd ARGUMENT \(WHETHER TO VALIDATE THE GIT LFS DIRECTORY\)\n"
 				printf "echo THEN IT MUST BE SET AS \(y\) FOR YES OR \(n\) FOR NO. DO NO USE THE PARENTHESES\n"
 				printf "echo SUBMISSION ABORTED\n"
 				printf "echo\n"
