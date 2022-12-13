@@ -4,10 +4,34 @@
 
 	SAMPLE_SHEET=$1
 
-	VALIDATE_GIT_LFS=$2 # optional. if you want to validate whether there are any changes to the git lfs directory
+	VALIDATE_PIPELINE_SCRIPTS=$2 # optional. if you want to validate whether there are any changes to the pipeline directory
 		# can turn it off, if testing changes before committing and pushing to git repo
 		# if null, then value is "y"
 		# if not null, then value HAS to be either "y" or "n" or program will exit with message
+
+			if
+				[[ ! ${VALIDATE_PIPELINE_SCRIPTS} ]]
+			then
+				VALIDATE_PIPELINE_SCRIPTS="y"
+			elif
+				# if VALIDATE_PIPELINE_SCRIPTS is not null AND not "y" or "n" then exit and print message to screen
+				[[ -n ${VALIDATE_PIPELINE_SCRIPTS} ]] && ! ([[ ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]] || [[ ${VALIDATE_PIPELINE_SCRIPTS} = "n" ]])
+			then
+				printf "echo\n"
+				printf "echo FATAL ERROR: IF SETTING 2nd ARGUMENT \(WHETHER TO VALIDATE THE PIPELINE SCRIPT DIRECTORY\)\n"
+				printf "echo THEN IT MUST BE SET AS \(y\) FOR YES OR \(n\) FOR NO. DO NO USE THE PARENTHESES\n"
+				printf "echo SUBMISSION ABORTED\n"
+				printf "echo\n"
+				exit 1
+			else
+				VALIDATE_PIPELINE_SCRIPTS=${VALIDATE_PIPELINE_SCRIPTS}
+			fi
+
+	VALIDATE_GIT_LFS=$3 # optional. if you want to validate whether there are any changes to the git lfs directory
+		# can turn it off, if testing changes before committing and pushing to git repo
+		# if null, then value is "y"
+		# if not null, then value HAS to be either "y" or "n" or program will exit with message
+		# if you want to set this argument then you have to set the 2nd as well, even to the default value
 
 			if
 				[[ ! ${VALIDATE_GIT_LFS} ]]
@@ -27,9 +51,9 @@
 				VALIDATE_GIT_LFS=${VALIDATE_GIT_LFS}
 			fi
 
-	PRIORITY=$3 # optional. how high you want the tasks to have when submitting.
-		# if you want to set this then you need to set the 2nd argument as well (even to the default)
-		# if no 3rd argument present then the default is -9.
+	PRIORITY=$4 # optional. how high you want the tasks to have when submitting.
+		# if you want to set this then you need to set the 2nd and 3rd argument as well (even to the default)
+		# if no 4th argument present then the default is -9.
 
 			if
 				[[ ! ${PRIORITY} ]]
@@ -37,9 +61,9 @@
 				PRIORITY="-9"
 			fi
 
-	QUEUE_LIST=$4 # optional. the queues that you want to submit to.
-		# if you want to set this then you need to set the 2nd and 3rd argument as well (even to the default)
-		# if no 4th argument present then the default is cgc.q
+	QUEUE_LIST=$5 # optional. the queues that you want to submit to.
+		# if you want to set this then you need to set the 2nd, 3rd and 4th argument as well (even to the default)
+		# if no 5th argument present then the default is cgc.q
 
 			if
 				[[ ! ${QUEUE_LIST} ]]
@@ -47,9 +71,9 @@
 				QUEUE_LIST="cgc.q"
 			fi
 
-	THREADS=$5 # optional. how many cpu processors you want to use for programs that are multi-threaded
-		# if you want to set this then you need to set the 2nd, 3rd and 4th argument as well (even to the default)
-		# if no 5th argument present then the default is 6
+	THREADS=$6 # optional. how many cpu processors you want to use for programs that are multi-threaded
+		# if you want to set this then you need to set the 2nd, 3rd, 4th and 5th argument as well (even to the default)
+		# if no 6th argument present then the default is 6
 
 			if
 				[[ ! ${THREADS} ]]
@@ -96,11 +120,11 @@
 	# to be used for tracking in the read group header of the cram file and written to the QC report
 
 		PIPELINE_VERSION=$(git \
-							--git-dir=${SCRIPT_DIR}/../.git \
-							--work-tree=${SCRIPT_DIR}/.. \
+							--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+							--work-tree=${SUBMITTER_SCRIPT_PATH} \
 							log \
-							--pretty=format:'%h' \
-							-n 1)
+								--pretty=format:'%h' \
+								-n 1)
 
 	# grab the git short hash for the pipeline files used
 	# to be written to the QC report
@@ -188,6 +212,151 @@
 
 				VEP_HTSLIB_QSUB_ARG="-v PATH=$PATH:${GIT_LFS_DIR}/CFTR_Full_Gene_Sequencing_Pipeline/GRCh37/vep_data"
 
+####################################################################################################################
+##### VALIDATE THAT THERE ARE NO UNTRACKED, UNCOMMITTED AND/OR UNPUSHED CHANGES TO PIPELINE SCRIPTS REPOSITORY #####
+##### ABORT SUBMISSION IF THERE ARE ################################################################################
+####################################################################################################################
+
+		if
+			[[ ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]]
+		then
+			printf "echo\n"
+			printf "echo VALIDATING THAT THERE ARE NO UNTRACKED AND/OR UNCOMMITTED CHANGES TO PIPELINE SCRIPTS REPOSITORY...\n"
+			printf "echo\n"
+		else
+			printf "echo\n"
+			printf "echo SKIPPING VALIDATIONS FOR PIPELINE SCRIPTS REPOSITORY...\n"
+			printf "echo\n"
+		fi
+
+	##########################################################################################
+	# VALIDATE THAT THERE ARE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE SCRIPTS REPOSITORY #
+	##########################################################################################
+
+		# DO A SIMPLE STATUS CHECK THAT THERE ARE NO CHANGES AND STORE AS VARIABLE
+
+			LOCAL_CHANGES_SCRIPTS=$(git \
+										--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+										--work-tree=${SUBMITTER_SCRIPT_PATH} \
+										status \
+											--porcelain)
+
+		# FUNCTION FOR FULL STATUS CHECK IN THE EVENT THAT THERE ARE UNTRACKED AND/OR UNCOMMITTED CHANGES
+
+			RUN_GIT_STATUS_SCRIPTS ()
+			{
+				git \
+					--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+					--work-tree=${SUBMITTER_SCRIPT_PATH} \
+					status
+			}
+
+	# IF THERE ARE UNTRACKED AND/OR UNCOMMITED CHANGES AND VALIDATE_PIPELINE_SCRIPTS IS SET TO "y"
+	# PRINT git STATUS MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# EXIT STATUS = 1
+
+		if
+			[[ -n ${LOCAL_CHANGES_SCRIPTS} && ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]]
+		then
+			# print message to screen
+
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: SCRIPTS REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES AT ${SUBMITTER_SCRIPT_PATH}.\n"
+				printf "echo\n"
+
+				printf "git --git-dir=${SUBMITTER_SCRIPT_PATH}/.git --work-tree=${SUBMITTER_SCRIPT_PATH} status"
+
+			# send message to teams
+
+				RUN_GIT_STATUS_SCRIPTS \
+					| mail \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: SCRIPTS REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES AT ${SUBMITTER_SCRIPT_PATH}." \
+						${SEND_TO}
+			exit 1
+		fi
+
+	################################################################################################
+	# VALIDATE THAT THERE ARE NO COMMITS IN THE LOCAL REPO THAT HAVE NOT BEEN PUSHED TO THE REMOTE #
+	################################################################################################
+
+		if
+			[[ ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]]
+		then
+			printf "echo COMPLETED: THERE WERE NO UNTRACKED AND/OR UNCOMMITTED TO PIPELINE SCRIPTS REPOSITORY\n"
+			printf "echo\n"
+			printf "echo NOW VALIDATING THAT THERE ARE NO DIFFERENCES BETWEEN REMOTE AND LOCAL REPOSITORIES FOR THE PIPELINE SCRIPTS REPOSITORY...\n"
+			printf "echo\n"
+		fi
+
+		# GRAB LOCAL BRANCH AND STORE AS A VARIABLE FOR MESSAGING
+
+			CURRENT_LOCAL_BRANCH_SCRIPTS=$(git \
+					--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+					--work-tree=${SUBMITTER_SCRIPT_PATH} \
+					branch \
+			| awk '$1=="*" {print $2}')
+
+		# CHECK THAT THERE ARE NO DIFFERENCES BETWEEN REMOTE AND LOCAL BRANCH. STORE AS A VARIABLE.
+
+			CHECK_LOCAL_VS_REMOTE_SCRIPTS=$(git \
+					--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+					--work-tree=${SUBMITTER_SCRIPT_PATH} \
+					diff \
+					origin/${CURRENT_LOCAL_BRANCH_SCRIPTS})
+
+		# FUNCTION TO RUN GIT DIFF FOR TEAMS MESSAGING IN THE EVENT THAT THERE ARE DIFFERENCES BETWEEEN LOCAL AND REMOTE
+
+			RUN_GIT_DIFF_LOCAL_VS_REMOTE_SCRIPTS ()
+			{
+				git \
+					--git-dir=${SUBMITTER_SCRIPT_PATH}/.git \
+					--work-tree=${SUBMITTER_SCRIPT_PATH} \
+					diff \
+					--name-status \
+					origin/${CURRENT_LOCAL_BRANCH_SCRIPTS}
+			}
+
+	# IF THERE ARE LOCAL COMMITTED CHANGES THAT HAVE NOT BEEN PUSHED TO REMOTE AND VALIDATE_PIPELINE_SCRIPTS IS SET TO "y"
+	# PRINT git diff MESSAGE TO SCREEN AND TO TEAMS AND ABORT SUBMISSION SCRIPT
+	# EXIT STATUS = 1
+
+		if
+			[[ -n ${CHECK_LOCAL_VS_REMOTE_SCRIPTS} && ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]]
+		then
+			# print message to screen
+
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT BRANCH - ${CURRENT_LOCAL_BRANCH_SCRIPTS}: LOCAL SCRIPTS REPOSITORY, ${SUBMITTER_SCRIPT_PATH}, HAS COMMITS NOT PUSHED TO REMOTE.\n"
+				printf "echo\n"
+				printf "echo BELOW ARE THE MODIFIED AND/OR NEW FILES THAT HAVE NOT BEEN PUSHED TO THE REMOTE REPOSITORY\n"
+				printf "echo \(M\): file has been modified but not commited to the remote repository\n"
+				printf "echo \(A\): new file has been added but not commited to the remote repository\n"
+				printf "echo\n"
+
+				printf "git --git-dir=${SUBMITTER_SCRIPT_PATH}/.git --work-tree=${SUBMITTER_SCRIPT_PATH} diff --name-status origin/${CURRENT_LOCAL_BRANCH_SCRIPTS}"
+
+			# send message to teams
+
+				RUN_GIT_DIFF_LOCAL_VS_REMOTE_SCRIPTS \
+					| mail \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT BRANCH - ${CURRENT_LOCAL_BRANCH_SCRIPTS}: LOCAL SCRIPTS REPOSITORY, ${SUBMITTER_SCRIPT_PATH}, HAS COMMITS NOT PUSHED TO REMOTE." \
+						${SEND_TO}
+			exit 1
+		fi
+
+	###########################################################################################################
+	# IF VALIDATING PIPELINE SCRIPTS REPOSITORY AND IF THERE WERE NO ISSUES THAN SAY SO ON SCREEN #############
+	# ALSO ALERT SUBMITTER THAT NOT ALL FILES CAN BE VALIDATED HERE BUT IF THERE WERE ISSUES WITH OTHER FILES #
+	# THAT NOTIFICATION WILL COME WITH THE NOTIFICATION WHEN THE PIPELINE HAS COMPLETED PROCESSING ############
+	###########################################################################################################
+
+		if
+			[[ ${VALIDATE_PIPELINE_SCRIPTS} = "y" ]]
+		then
+			printf "echo COMPLETED: THERE WERE NO ISSUES WITH PIPELINE SCRIPTS REPOSITORY.\n"
+			printf "echo\n"
+			printf "echo NOW CONTINUING WITH THE PIPELINE SUBMISSION\n"
+			printf "echo\n"
+		fi
+
 #################################################################################################################
 ##### VALIDATE THAT THERE ARE NO UNTRACKED, UNCOMMITTED AND/OR UNPUSHED CHANGES TO PIPELINE FILE REPOSITORY #####
 ##### ABORT SUBMISSION IF THERE ARE #############################################################################
@@ -211,7 +380,7 @@
 
 		# DO A SIMPLE STATUS CHECK THAT THERE ARE NO CHANGES AND STORE AS VARIABLE
 
-			LOCAL_CHANGES=$(singularity \
+			LOCAL_CHANGES_LFS=$(singularity \
 				exec \
 					-B ${GIT_LFS_DIR}:/opt \
 				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
@@ -221,7 +390,7 @@
 
 		# FUNCTION FOR FULL STATUS CHECK IN THE EVENT THAT THERE ARE UNTRACKED AND/OR UNCOMMITTED CHANGES
 
-			RUN_GIT_STATUS ()
+			RUN_GIT_STATUS_LFS ()
 			{
 				singularity \
 				exec \
@@ -236,20 +405,20 @@
 	# EXIT STATUS = 1
 
 		if
-			[[ -n ${LOCAL_CHANGES} && ${VALIDATE_GIT_LFS} = "y" ]]
+			[[ -n ${LOCAL_CHANGES_LFS} && ${VALIDATE_GIT_LFS} = "y" ]]
 		then
 			# print message to screen
 
-				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES.\n"
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES AT ${GIT_LFS_DIR}.\n"
 				printf "echo\n"
 
 				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt status"
 
 			# send message to teams
 
-				RUN_GIT_STATUS \
+				RUN_GIT_STATUS_LFS \
 					| mail \
-						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES." \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: FILE REPOSITORY HAS UNTRACKED AND/OR UNCOMMITTED CHANGES AT ${GIT_LFS_DIR}." \
 						${SEND_TO}
 			exit 1
 		fi
@@ -269,7 +438,7 @@
 
 		# GRAB LOCAL BRANCH AND STORE AS A VARIABLE FOR MESSAGING
 
-			CURRENT_LOCAL_BRANCH=$(singularity \
+			CURRENT_LOCAL_BRANCH_LFS=$(singularity \
 				exec \
 					-B ${GIT_LFS_DIR}:/opt \
 				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
@@ -279,17 +448,17 @@
 
 		# CHECK THAT THERE ARE NO DIFFERENCES BETWEEN REMOTE AND LOCAL BRANCH. STORE AS A VARIABLE.
 
-			CHECK_LOCAL_VS_REMOTE=$(singularity \
+			CHECK_LOCAL_VS_REMOTE_LFS=$(singularity \
 				exec \
 					-B ${GIT_LFS_DIR}:/opt \
 				${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git \
 						-C /opt \
 					diff \
-					origin/${CURRENT_LOCAL_BRANCH})
+					origin/${CURRENT_LOCAL_BRANCH_LFS})
 
 		# FUNCTION TO RUN GIT DIFF FOR TEAMS MESSAGING IN THE EVENT THAT THERE ARE DIFFERENCES BETWEEEN LOCAL AND REMOTE
 
-			RUN_GIT_DIFF_LOCAL_VS_REMOTE ()
+			RUN_GIT_DIFF_LOCAL_VS_REMOTE_LFS ()
 			{
 				singularity \
 				exec \
@@ -298,7 +467,7 @@
 						-C /opt \
 					diff \
 					--name-status \
-					origin/${CURRENT_LOCAL_BRANCH}
+					origin/${CURRENT_LOCAL_BRANCH_LFS}
 			}
 
 	# IF THERE ARE LOCAL COMMITTED CHANGES THAT HAVE NOT BEEN PUSHED TO REMOTE AND VALIDATE_GIT_LFS IS SET TO "y"
@@ -306,24 +475,24 @@
 	# EXIT STATUS = 1
 
 		if
-			[[ -n ${CHECK_LOCAL_VS_REMOTE} && ${VALIDATE_GIT_LFS} = "y" ]]
+			[[ -n ${CHECK_LOCAL_VS_REMOTE_LFS} && ${VALIDATE_GIT_LFS} = "y" ]]
 		then
 			# print message to screen
 
-				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE.\n"
+				printf "echo SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH_LFS}: LOCAL FILE REPOSITORY, ${GIT_LFS_DIR}, HAS COMMITS NOT PUSHED TO REMOTE.\n"
 				printf "echo\n"
 				printf "echo BELOW ARE THE MODIFIED AND/OR NEW FILES THAT HAVE NOT BEEN PUSHED TO THE REMOTE REPOSITORY\n"
 				printf "echo \(M\): file has been modified but not commited to the remote repository\n"
 				printf "echo \(A\): new file has been added but not commited to the remote repository\n"
 				printf "echo\n"
 
-				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt diff --name-status origin/${CURRENT_LOCAL_BRANCH}"
+				printf "singularity exec -B ${GIT_LFS_DIR}:/opt ${GIT_LFS_DIR}/git_utils/git-lfs-2.7.2.simg git -C /opt diff --name-status origin/${CURRENT_LOCAL_BRANCH_LFS}"
 
 			# send message to teams
 
-				RUN_GIT_DIFF_LOCAL_VS_REMOTE \
+				RUN_GIT_DIFF_LOCAL_VS_REMOTE_LFS \
 					| mail \
-						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH}: LOCAL FILE REPOSITORY HAS COMMITS NOT PUSHED TO REMOTE." \
+						-s "SUBMISSION ABORTED: PIPELINE - CFTR_Full_Gene_Sequencing_Pipeline: GIT LFS BRANCH - ${CURRENT_LOCAL_BRANCH_LFS}: LOCAL FILE REPOSITORY, ${GIT_LFS_DIR}, HAS COMMITS NOT PUSHED TO REMOTE." \
 						${SEND_TO}
 			exit 1
 		fi

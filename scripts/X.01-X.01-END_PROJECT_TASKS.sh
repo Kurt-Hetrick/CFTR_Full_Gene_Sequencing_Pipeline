@@ -406,13 +406,13 @@
 			printf "${CORE_PATH}/$PROJECT/REPORTS/md5_diff_CFTR_Full_Gene_Sequencing_Pipeline_${TIMESTAMP}.txt:\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "###################################################################\n" \
-				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
-
-			printf "FILE MD5 HASHSUMS:\n" \
+			printf "RESOURCE FILE MD5 HASHSUMS:\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
 			printf "md5_pipeline_resources_${PROJECT}_${SUBMIT_STAMP}.txt\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
 			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
